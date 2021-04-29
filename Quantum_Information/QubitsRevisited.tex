@@ -1,0 +1,99 @@
+\subsection{Qubit Revisited}
+\label{Subsection: Qubit Revisited}
+
+In section~\ref{Subsec: Qubit} we introduced the concept of qubits, but we didn't have the density operator formalism yet, now we take a more detailed look on qubits and the bloch sphere.
+
+The density matrix of a qubit is a $2\mathrm{x}2$ matrix: 
+\begin{equation}
+    \rho = \begin{pmatrix}
+    \rho_{00} & \rho_{01} \\
+    \rho_{10} & \rho_{11}
+    \end{pmatrix} = \sum_{i=0}^1 \sum_{j=0}^1 \rho_{ij} \ket{i} \bra{j}
+\end{equation}
+
+Since it is a density matrix, we have that: $\rho_{00} + \rho_{11} = 1$ and $\rho_{ij}^* = \rho_{ji}$
+
+We can expand the density matrix on the pauli matrices basis: $\mathcal{B}_{2\mathrm{x}2} = \{\mathds{1}, \sigma_x, \sigma_y, \sigma_z \}$.
+
+The Pauli Matrices are: 
+
+\begin{equation}
+    \sigma_x = \begin{pmatrix}
+    0 & 1 \\
+    1 & 0
+    \end{pmatrix} \hspace{1em} , \hspace{1em}  \sigma_y = \begin{pmatrix}
+    0 & -i \\
+    i & 0
+    \end{pmatrix} \hspace{1em} , \hspace{1em}  \sigma_z = \begin{pmatrix}
+    1 & 0 \\
+    0 & -1
+    \end{pmatrix}
+\end{equation}
+
+And they have the following properties:
+\begin{itemize}
+    \item Hermitian: $\sigma_i = \sigma_i^{\dagger}$, $\forall i$ ;
+    \item $Tr(\sigma_i) = 0$, $\forall i \in \{x,y,z \}$ ;
+    \item $Tr(\sigma_i^{\dagger} \sigma_j) = 2 \delta_{ij}$ ;
+    \item $\sigma_i \sigma_j = \delta_{ij} \mathds{1} + i  \epsilon_{ijk} \sigma_k$, $i,j,k \in \{x,y,j \}$, in particular $\sigma_i^2 = \mathds{1}$.
+\end{itemize}
+
+Writing the qubit on the Pauli Matrices basis, we have:
+
+\begin{equation}
+    \rho = r_0 \mathds{1} + r_1 \sigma_x + r_2 \sigma_y + r_3 \sigma_z
+\end{equation}
+
+Applying the unit trace condition, we have:
+
+\begin{equation}
+    Tr(\rho) = 1 \Rightarrow 2 r_0 = 1 \Rightarrow r_0 = \frac{1}{2}
+\end{equation}
+
+Therefore:
+
+\begin{equation}
+    \rho = \frac{1}{2} \mathds{1} + r_1 \sigma_x + r_2 \sigma_y + r_3 \sigma_z
+\end{equation}
+
+Using that the density matrix is Hermitian, we have that:
+
+\begin{equation}
+    \rho = \rho^{\dagger} \Rightarrow \frac{1}{2} \mathds{1} + r_1 \sigma_x + r_2 \sigma_y + r_3 \sigma_z = \frac{1}{2} \mathds{1} + r_1^* \sigma_x + r_2^* \sigma_y + r_3 \sigma_z^* \Rightarrow r_1,r_2,r_3 \in \mathds{R}
+\end{equation}
+
+We choose $r_1 = \frac{1}{2} r_x$, $r_2 = \frac{1}{2} r_y$, $r_3 = \frac{1}{2} r_z$, then our qubit density matrix is written as: 
+
+\begin{equation}
+    \label{Eq: Qubit Density Matrix}
+    \rho = \frac{1}{2} \bigg( \mathds{1} + r_x \sigma_x + r_y \sigma_y + r_z \sigma_z \bigg) = \frac{1}{2} \bigg( \mathds{1} + \mathbf{r} \cdot \mathbf{\sigma} \bigg)
+\end{equation}
+
+Writing as a matrix, we have:
+
+\begin{equation}
+    \rho = \frac{1}{2} \begin{pmatrix}
+    1 + r_z & r_x - i r_y \\
+    r_x + i r_y & 1 - r_z
+    \end{pmatrix}
+\end{equation}
+
+So now, in order to know where the state is in the Bloch sphere we just write the density matrix and find $r_x,r_y \ \mathrm{and} \ r_z $. 
+
+It is interesting to note that pure and mixed states stay on different regions of the Bloch sphere, let's calculate the purity of an generic qubit:
+
+\begin{equation}
+    \begin{split}
+        P(\rho) & = Tr(\rho^2) = Tr \bigg[ \bigg( \frac{1}{2} ( \mathds{1} + \mathbf{r}\cdot\mathbf{\sigma} \bigg)^2 \bigg] 
+         = \frac{1}{4} \ Tr \bigg(\mathds{1} + \mathbf{r}\cdot\mathbf{\sigma} \bigg)\bigg(\mathds{1} + \mathbf{r}\cdot\mathbf{\sigma} \bigg) \\
+        & = \frac{1}{4} \ Tr \bigg( \mathds{1} + 2 \mathbf{r}\cdot\mathbf{\sigma} + \sum_{ij} r_i r_j \sigma_i \sigma_j \bigg) \\
+        & = \frac{1}{4} \ Tr \bigg( \mathds{1} + 2 \mathbf{r}\cdot\mathbf{\sigma} + \sum_{i \neq j} r_i r_j \sigma_i \sigma_j + \sum_{i } r_i^2  \overbrace{\sigma_i^2}^{=\mathds{1}} \bigg) \\
+        & = \frac{1}{4} ( 2 + 2 \sum_i r_i^2) = \frac{1}{2} ( 1 + |\mathbf{r}|^2)
+    \end{split}
+\end{equation}
+
+Therefore we have two situations:
+\begin{itemize}
+    \item Pure States: If $|\mathbf{r}|=1$, therefore it is in the spherical shell.
+    \item Mixed States: If $|\mathbf{r}|<1$, those states are inside the Bloch sphere in a spherical shell("isopure shells").
+\end{itemize}

@@ -1,0 +1,293 @@
+\subsection{Transmon Physics}
+\label{Subsec: Transmon Physics}
+
+In order to have a qubit we need a two-level system. The first type of superconducting qubits discovered was the Cooper Pair Box. But the better suited superconducting qubit is the Transmon, because it fixes the charge noise problem on the cooper pair box, this is done by an the anharmonicity of a Josephson Junction. 
+
+To understand the physics of Transmon qubits firstly we need to find the Hamiltonian to quantize a classical circuit, by comparing classical poisson brackets to quantum commutators.
+
+\subsubsection{Hamiltonian of a Quantum Circuit}
+\label{Subsubsec: Hamiltonian of a quantum circuit}
+
+Let's consider the simple example of a LC circuit:
+\begin{figure}[H]
+    \centering
+    \begin{circuitikz}[american, scale = 1.5]
+      \draw (0,0)
+      to[L, v^<=$L$] (0,2) 
+      to[] (2,2) 
+      to[C, v^<=$C$] (2,0) 
+      to[] (0,0); 
+    \end{circuitikz}
+    \caption{LC Circuit.}
+    \label{fig: LC Circuit}
+\end{figure}
+
+We will first find the Lagrangean and then do a Legendre transform to obtain the Hamiltonian. For finding the Lagrangean, we use the Branch-Flux Method. We the define the flux and charge as follows:
+
+\begin{equation}
+    \Phi (t) = \int_{-\infty}^t V(t')dt' \ \ \ \ Q(t) = \int_{-\infty}^t I(t')dt'
+\end{equation}
+
+We will use the flux $\Phi$ as our generalized coordinate. The instantaneous energy across the circuit at a time t is:
+
+\begin{equation}
+    E(t) = \int_{-\infty}^t V(t') I(t') dt'
+\end{equation}
+
+We know that the voltage across a capacitor with capacitance C is $I = C \frac{dV}{dt}$ and for an inductor with inductance L is: $V = L \frac{dI}{dt}$. The potential energy in the inductor is:
+
+\begin{equation}
+    U_L (t) = \int_{-\infty}^t L \frac{dI(t')}{dt} I(t') dt' = \int_{-\infty}^t L dI(t') I(t') = \frac{1}{2} L [I(t)]^2
+\end{equation}
+
+Since $\Phi (t) = \int_{-\infty}^t V(t') dt' = \int_{-\infty}^t \frac{dI(t')}{dt'} dt' = L I(t)$, we have that:
+
+\begin{equation}
+    U_L (t) = \frac{1}{2L} \Phi^2
+\end{equation}
+
+Similarly, voltage is the rate of change of flux, so it corresponds to the kinectic energy:
+
+\begin{equation}
+    K_C (t) = \int_{-\infty}^t C \frac{dV(t')}{dt'} V(t') = \frac{1}{2} C [V(t)]^2 = \frac{1}{2} C \dot{\Phi}^2
+\end{equation}
+
+Then we can construct the Lagrangean since it is the diference between Kinectic and Potential energy:
+
+\begin{equation}
+    \mathcal{L} = K - U = \frac{1}{2L} \Phi^2 - \frac{1}{2} C \dot{\Phi}^2
+\end{equation}
+
+The dynamics is given by the Euler-Lagrange Equation:
+
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial \Phi} - \frac{d}{dt}\bigg(\frac{\partial \mathcal{L}}{\partial \dot{\Phi}} \bigg) = 0 \Rightarrow \frac{\Phi}{L} + C \ddot{\Phi} = 0
+\end{equation}
+
+Thus the dynamical equation is:
+
+\begin{equation}
+    \ddot{\Phi} = \omega^2 \Phi
+\end{equation}
+
+This is a harmonic oscillator in $\Phi$ with frequency $\omega = \frac{1}{\sqrt{LC}}$. Since we want to get the Hamiltonian, we get the conjulgate variable of the flux, $Q$:
+
+\begin{equation}
+    Q \equiv \frac{\partial \mathcal{L}}{\partial \Phi} = C \dot{\Phi} = C V
+\end{equation}
+
+Now we obtain the Hamiltonian by using a Legendre transform:
+
+\begin{equation}
+    \mathcal{H} = Q\Phi - \mathcal{L} = \frac{Q^2}{2C} + \frac{\Phi^2}{2L}
+\end{equation}
+
+\subsubsection{Quantizing a circuit Hamiltonian}
+\label{Subsubsec: Quantizing a circuit Hamiltonian}
+
+We will get the quantum harmonic oscillator when we quantize the LC circuit by changing conjulgate variables to operators $Q \rightarrow \hat{Q}$, $\Phi \rightarrow \hat{\Phi}$:
+
+\begin{equation}
+    \hat{\mathcal{H}} = \frac{\hat{Q}}{2C} + \frac{\hat{\Phi}}{2L}
+\end{equation}
+
+After this we associate Poisson brackets into commutation relations:
+\begin{equation}
+    \{A, B\} = \frac{\delta A}{\delta \Phi} \frac{\delta B}{\delta Q} - \frac{\delta A}{\delta Q} \frac{\delta B}{\delta \Phi} \ \Leftrightarrow \ \frac{1}{i \hbar} [\hat{A}, \hat{B}] = \hat{A}\hat{B} - \hat{B}\hat{A}
+\end{equation}
+
+For our variables:
+
+\begin{equation}
+    \{\Phi, Q \} = 1 \Rightarrow [\hat\Phi, \hat Q] = i \hbar
+\end{equation}
+
+We can rewerite the hamiltonian using the reduced charge $\hat n = \frac{\hat Q}{2e}$ and phase $\hat \phi = \frac{2 \pi \Phi}{\Phi_0}$, were $\Phi_0 = \frac{h}{2e}$:
+
+\begin{equation}
+    \hat H = 4E_C \hat{n}^2 + \frac{1}{2} E_L \hat{\phi}^2
+\end{equation}
+
+Where $E_C = \frac{e^2}{2C}$ is the charging energy and $E_L = \bigg(\frac{\Phi_0}{2\pi}\bigg)^2 \frac{1}{L}$ is the inductive energy. Now we can define creation and annihilation operators in terms of zero-point fluctuations of the charge and phase:
+
+\begin{equation}
+    \hat n = i \ n_{ZPF} ( \hat a + \hat a^\dagger )\ \ \ \ \ \ , \ \ n_{ZPF} = \bigg( \frac{E_L}{32 E_C} \bigg)^{\frac{1}{4}}
+\end{equation}
+
+\begin{equation}
+    \hat \phi =  \phi_{ZPF} ( \hat a - \hat a^\dagger) \ \ \ \ \ \ , \ \ \phi_{ZPF} = \bigg( \frac{2 E_C}{E_L} \bigg)^{\frac{1}{4}}
+\end{equation}
+
+Thus we have the quantum harmonic oscillator hamiltonian:
+
+\begin{equation}
+    \mathcal{H} = \hbar \omega \bigg( a^\dagger a + \frac{1}{2} \bigg)
+\end{equation}
+
+with $\omega = \frac{\sqrt{8E_L E_C}}{\hbar} = \frac{1}{\sqrt{LC}}$.
+
+\subsubsection{Transmon Hamiltonian}
+\label{Subsubsec: Transmon Hamiltonian}
+
+All this work was done for the quantization of LC circuits, for the Transmon circuit we need to change the inductor for a josephson junction which has the following current-flux relation:
+
+\begin{equation}
+    I = I_0 \sin \bigg( \frac{2\pi \Phi}{\Phi_0} \bigg)
+\end{equation}
+
+Using Kirchoff's law, just as before, we have the following equation of motion:
+
+\begin{equation}
+    I_0 \sin \bigg( \frac{2\pi \Phi}{\Phi_0} \bigg) + C \ddot{\Phi} = 0
+\end{equation}
+
+Now we need to convert this equation of motion into a Lagrangian, which is:
+
+\begin{equation}
+    \mathcal{L} = \frac{I_0 \Phi_0}{2\pi} \cos \bigg( \frac{2\pi \Phi}{\Phi_0} \bigg) + \frac{C}{2} \dot{\Phi}^2
+\end{equation}
+
+Using the Euler-Lagrange equations we have the same equations of motion. We have the same conjugate variable $Q \equiv \frac{\partial \mathcal{L}}{\partial \dot{\Phi}} = C \dot{\Phi}$, thus the Hamiltonian is:
+
+\begin{equation}
+    \mathcal{H}_T = Q \dot{\Phi} - \mathcal{L} = \frac{Q^2}{2C} - \frac{I_0 \Phi_0}{2 \pi} \cos \bigg( \frac{2 \pi \Phi}{\Phi_0} \bigg)
+\end{equation}
+
+Now let's quantize it as we did for the LC Circuit:
+
+\begin{equation}
+    \mathcal{H}_T = 4 \ E_C \ \hat n^2 - E_J \cos \hat\phi \ \ \ , \ \ \ E_J = \frac{I_0 \Phi_0}{2 \pi}
+\end{equation}
+
+Where $E_J$ is the josephson junction energy. We can see that the functional form of the phase is now non-linear. Now let's quantize using creation and annihilation operators:
+
+\begin{equation}
+    \hat n = i \ n_{ZPF} ( \hat c + \hat c^\dagger ) \ \ \ n_{ZPF} = \bigg( \frac{E_J}{32E_C} \bigg)
+\end{equation}
+
+\begin{equation}
+    \hat \phi =  \phi_{ZPF} ( \hat c - \hat c^\dagger ) \ \ \ \phi_{ZPF} = \bigg( \frac{2E_C}{E_J} \bigg)
+\end{equation}
+
+Noting that $\phi << 1$ in the transmon regime $\frac{E_J}{E_C}>>1$, we take the taylor expansion:
+
+\begin{equation}
+    \mathcal{H}_T = 4 E_C n_{ZPF}^2 ( c + c^\dagger)^2 - E_J \bigg[ 1 - \frac{1}{2} E_J \phi_{ZPF}^2 (c - c^\dagger)^2 + \frac{1}{24} E_J \phi_{ZPF}^4 (c - c^\dagger)^4 + \dots \bigg]
+\end{equation}
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \mathcal{H}_T \approx \sqrt{8 E_C E_J} \bigg[ c^\dagger c + \frac{1}{2} \bigg] - E_J - \frac{E_C}{12}(c^\dagger + c)^4
+\end{empheq}
+
+We can expand it on $c,c^\dagger$ and drop fast-rotating terms (with uneven number of $c$ and $c^\dagger$) and dropping constants $\omega_0 = \sqrt{8 E_C E_J}$ and $\delta = - E_J$:
+
+\begin{equation}
+    \mathcal{H}_T \approx \omega_0 c^\dagger c + \frac{\delta}{2} \bigg( \big( (c^\dagger c)^2 + c^\dagger c \bigg)
+\end{equation}
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+     \mathcal{H}_T = \bigg( \omega_0 + \frac{\delta}{2} \bigg) c^\dagger c + \frac{\delta}{2} (c^\dagger c)^2
+\end{empheq}
+
+Which is a Hamiltonian of a \textit{Duffing Oscillator}. From the definition of $c = \sum_j \sqrt{j+1} \op{j}{j+1}$ we have $c^\dagger c = \sum_j j \op{j}{j}$, thus:
+
+\begin{equation}
+    \mathcal{H}_T = \omega_0 c^\dagger c + \frac{\delta}{2} c^\dagger c ( c^\dagger c - 1) = \sum_j \bigg[ \bigg( \omega_0 - \frac{\delta}{2} \bigg)j + \frac{\delta}{2} j^2 \bigg] \op{j}{j} = \sum_j \omega_j \op{j}{j}
+\end{equation}
+
+where $\omega_j = \big(\omega_0 - \frac{\delta}{2} \big) j + \frac{\delta}{2}j^2$ are the energy levels of the transmon.
+
+\subsubsection{Qubit Drive and Rotating Wave Approximation}
+\label{Subsubsec: Qubit Drive and Rotating Wave Approximation}
+
+Now that we know about the transmon qubit we need a way to control it. This is done by applying an electric field $\Vec{E}(t) = \Vec{E}_0 e^{-i \omega_d t} + \Vec{E}_0^* e^{i \omega_d t}$ which induces a dipole interaction between the transmon and microwave field. Now we have the qubit Hamiltonian and a drive Hamiltonian:
+
+\begin{equation}
+    H = H_0 + H_d \ \ \ , \ \ \ H_0 = - \frac{1}{2}\hbar \omega_q \sigma^Z
+\end{equation}
+
+Since we assume that the qubit hamiltonian is only a 2 level system we can use Pauli raising/lowering operators $\sigma^{\pm} = \frac{1}{2} \big( \sigma^X \mp \sigma^Y \big)$ which acts as annihilation/creation operators:
+
+\begin{equation}
+    \sigma^+ \ket{0} = \ket{1} \ \ \ \ \ \ \sigma^- \ket{1} = \ket{0}
+\end{equation}
+
+Since the electric field will excite and de-excite the qubit, we define the dipole operator as $\Vec{d} = \Vec{d}_0 \sigma^ + \Vec{d}_0^* \sigma^- $. The drive hamiltonian is:
+
+\begin{equation*}
+    \begin{split}
+    H_d = - \Vec{d}\cdot \Vec{E}(t) & = - (\Vec{d}_0 \sigma^ + + \Vec{d}_0^* \sigma^-) \cdot (\Vec{E}_0 e^{-i \omega_d t} + \Vec{E}_0^* e^{i \omega_d t}) \\
+    & = - (\Vec{d}_0 \cdot \Vec{E}_0 e^{-i \omega_d t} + \Vec{d}_0 \cdot \Vec{E}_0^* e^{i \omega_d t}) \sigma^+ - (\Vec{d}_0^* \cdot \Vec{E}_0 e^{-i \omega_d t} + \Vec{d}_0^* \cdot \Vec{E}_0^* e^{i \omega_d t}) \sigma^- 
+    \end{split}
+\end{equation*}
+
+Defining $\Omega = \Vec{d}_0 \cdot \Vec{E}_0$ and $\tilde \Omega = \Vec{d}_0 \cdot \Vec{E}_0^*$, we have the Drive Hamiltonian:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    H_d  = - \hbar \bigg[ \Omega e^{-i \omega_d t} + \tilde{\Omega} e^{i \omega_d t} \bigg] \sigma^+ - \hbar \bigg[ \tilde{\Omega}^* e^{-i \omega_d t} + \Omega^* e^{i \omega_d t} \bigg] \sigma^+ 
+\end{empheq}
+
+We have to move to the interaction picture using the transformation $H_{d,I} = U H_d U^\dagger$, where:
+
+\begin{empheq}[box=\tcbhighmath]{equation*}
+    U = e^{i \frac{H_0 t}{\hbar}} = \mathds{1} \cos \big( \frac{\omega_q t}{2} \big) - i \ \sigma^Z \sin \big( \frac{\omega_q t}{2} \big)
+\end{empheq}
+
+Let's compute the operator terms separately:
+
+\begin{equation}
+\begin{split}
+    & \bigg(\mathds{1} \cos \big( \frac{\omega_q t}{2} \big) - i \ \sigma^Z \sin \big( \frac{\omega_q t}{2} \big) \bigg) \sigma^+ \bigg( \mathds{1} \cos \big( \frac{\omega_q t}{2} \big) + i \ \sigma^Z \sin \big( \frac{\omega_q t}{2} \big) \bigg) \\
+    & = \sigma^+  \cos^2 \big( \frac{\omega_q t}{2} \big) + i \sigma^+ \sigma^Z \cos \big( \frac{\omega_q t}{2} \big) \sin \big( \frac{\omega_q t}{2} \big) - i \sigma^Z \sigma^+ \cos \big( \frac{\omega_q t}{2} \big) \sin \big( \frac{\omega_q t}{2} \big) + \sigma^Z \sigma^+ \sigma^Z \sin^2 \big( \frac{\omega_q t}{2} \big) \\
+    & = \bigg( \cos^2 \big( \frac{\omega_q t}{2} \big) - \sin^2 \big( \frac{\omega_q t}{2} \big) \bigg) + i \bigg( \cos \big( \frac{\omega_q t}{2} \big) \sin \big( \frac{\omega_q t}{2} \big) + \cos \big( \frac{\omega_q t}{2} \big) \sin \big( \frac{\omega_q t}{2} \big) \bigg) \sigma^+ \\
+    & = \big[ \cos \omega_q t + i \sin \omega_q t \big] \sigma^+ = e^{i \omega_q t} \sigma^+
+\end{split}
+\end{equation}
+
+We can do the same for $\sigma^-$ : $U \sigma^- U^\dagger = e^{-i\omega_q t} \sigma^-$. Thus:
+
+\begin{equation*}
+    H_{d, I} = - \hbar \bigg[ \Omega e^{-i \omega_d t} + \tilde{\Omega} e^{i \omega_d t} \bigg] e^{i\omega_q t} \sigma^+ - \hbar \bigg[ \tilde{\Omega}^* e^{-i \omega_d t} + \Omega^* e^{i \omega_d t} \bigg] e^{-i\omega_q t} \sigma^+ 
+\end{equation*}
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    H_{d, I} = - \hbar \bigg[ \Omega e^{-i \Delta_q t} + \tilde{\Omega} e^{i (\omega_d + \omega_q) t} \bigg] e^{i\omega_q t} \sigma^+ - \hbar \bigg[ \tilde{\Omega}^* e^{-i (\omega_d + \omega_q) t} + \Omega^* e^{i \omega_d t} \bigg] e^{-i \Delta_q t} \sigma^+ 
+\end{empheq}
+
+Where $\Delta_q = \omega_q - \omega_d$. Now we can use the \textbf{rotating wave approximation} : $\omega_q + \omega_d >> \Delta_q$, the terms with $\omega_q + \omega_d$ will oscillate fast, therefore we can drop them because they will average out. Now Our Hamiltonian is:
+
+\begin{equation}
+    H^{\mathrm{RWA}}_{d,I} = - \hbar \Omega e^{-i \Delta_q t} \sigma^+ - \hbar \Omega^{*} e^{i \Delta_q t} \sigma^-
+\end{equation}
+
+Moving back to the Schrödinger picture:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    H^{\mathrm{RWA}}_{d} = - \hbar \Omega e^{-i \omega_d t} \sigma^+ - \hbar \Omega^{*} e^{i \omega_d t} \sigma^-
+\end{empheq}
+
+Adding the drive hamiltonian and the qubit hamiltonian we have:
+
+\begin{equation}
+    H^{\mathrm{RWA}} = -\frac{1}{2} \hbar \omega_q \sigma^Z - \hbar \Omega e^{-i \omega_d t} \sigma^+ - \hbar \Omega^{*} e^{i \omega_d t} \sigma^-
+\end{equation}
+
+We can go to the frame of the drive by doing the following transformation $U_d = e^{-i \omega_d t \frac{\sigma}{2}}$, then in the frame of the drive using the Schrödinger Equation, the effective Hamiltonian is:
+
+\begin{equation*}
+    H_{\mathrm{eff}} = U_d H^{\mathrm{RWA}} U_d^\dagger - i \hbar U_d \dot{U_d}^\dagger
+\end{equation*}
+
+After a bit of algebra...
+
+\begin{equation*}
+    H_{\mathrm{eff}} = - \frac{1}{2} \hbar \omega_q \sigma^Z - \hbar \Omega \sigma^+ - \hbar \Omega^* \sigma^- + \frac{1}{2} \hbar \Omega_d \sigma^Z = - \frac{1}{2} \hbar \Delta_q \sigma^Z - \hbar \Omega \sigma^+ - \hbar \Omega^* \sigma^-
+\end{equation*}
+
+Assuming that the drive is real, $\Omega = \Omega^*$, we have the desired hamiltionian:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    H_{\mathrm{eff}} = - \frac{1}{2} \hbar \Delta_q \sigma^Z - \hbar \Omega \sigma^X
+\end{empheq}
+
+This shows that when the drive is resonant with the qubit ($ \Delta_q = 0$) the drive causes an X rotation in the Bloch sphere. On the other hand, an off-resonant qubit drive has additional Z rotations generated by the $\sigma^Z$ contribution, and those manifest themselves as oscillations in a Ramsey experiment.

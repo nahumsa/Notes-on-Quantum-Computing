@@ -1,0 +1,35 @@
+\subsection{Deutsch's Algorithm}
+\label{subsec: Deutsch}
+
+\textbf{Problem}: Consider an oracle evaluating a 1 bit boolean function $f:\{ 0,1\} \rightarrow \{ 0,1\}$ we want to know if the function is constant ( $f(0) = 0$ and $f(1) = 1$) or balanced ( $f(0) = 1$ and $f(1) = 0$). 
+
+For a classical computer it is needed two queries, that means, you need to test 2 diferent bits and see the outputs, for instance if $f(0) = 0$ and $f(1) = 1$ you know that the function is constant.
+
+For a quantum computer this can be done with only one query. This is done with the Deutsch algorithm, the idea is to check if it is balanced, if it is not balanced it is constant.
+
+\textbf{Solution}: The Deutsch's Algorithm is the following:
+\begin{enumerate}
+    \item Start with the state $\left| \psi \right> = \left| 10 \right>$:
+    
+    \item  Apply a Hadamard on both qubits, the state will be: $\left| \psi_2     \right> =$ $\frac{1}{2} \left( \left| 0 \right> - \left| 1 \right> \right)     \otimes \left( \left| 0 \right> + \left| 1 \right> \right) $
+    
+    \item  Apply a Unitary operator such that:  $U_f  \frac{1}{\sqrt 2} \left(     \left| 0 \right> - \left| 1 \right> \right)\left| x \right> $ $ =     (-1)^{f(x)} \frac{1}{\sqrt 2} \left( \left| 0 \right> - \left| 1 \right>     \right)\left| x \right>$. The phase factor is "kicked back" on the front of     the state, this will be useful to evaluate $f(x)$ with only one query. The     state after $U_f$ is: $\left| \psi_3 \right> =$ $\frac{1}{2} \left( \left|     0 \right> - \left| 1 \right> \right) \otimes \left( (-1)^{f(0)}\left| 0     \right> + (-1)^{f(1)}\left| 1 \right> \right) $
+    
+    \item  Apply a Hadamard on the first Qubit: $\left| \psi_3 \right> =$     $\frac{1}{2} \left( \left| 0 \right> - \left| 1 \right> \right) \otimes     \left[ \left((-1)^{f(0)} + (-1)^{f(1)}\right) \left| 0 \right> +     \left((-1)^{f(0)} - (-1)^{f(1)}\right)\left| 1 \right> \right] $
+\end{enumerate}
+
+So now if $f(0) = f(1)$ we will measure $\left| 0 \right> = \left| f(0) \bigoplus f(1) \right>$ and if $f(0) \neq f(1)$ we will measure $\left| 1 \right> = \left| f(0) \bigoplus f(1) \right>$.
+
+In this implementation the oracle ($U_f$) is a C-NOT gate, this will measure if the function is balanced.
+
+This can be extended for a function with more inputs, not only two. In this case, the solution is the Deutsch–Jozsa Algorithm.
+
+\begin{figure}[H]
+\centering
+\begin{quantikz}
+\lstick{\ket{x}} & \gate[wires=2][2cm]{U} & \rstick{\ket{x}} \qw \\
+\lstick{\ket{y}} &                        & \rstick{\ket{y \oplus f(x)}} \qw 
+\end{quantikz}
+\caption{Circuit for the Oracle used on Deutsch's Algorithm.}
+\label{Figure: Deutsch Algorithm Oracle}
+\end{figure}

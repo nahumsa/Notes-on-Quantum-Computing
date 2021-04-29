@@ -1,0 +1,152 @@
+\subsection{Variational Quantum Thermalizer}
+\label{Subsec: VQT}
+
+\subsubsection{Introduction}
+\label{Subsubsec: VQT intro}
+In this section we will focus on Quantum Hamiltonian-Based models, which is a generalization of Energy-Based models in Deep Learning to the Quantum realm. This is based on the paper~\cite{verdon2019VQT}. The general algorithm is depicted in \ref{fig: VQT} The variational latent distribution $\rho_\theta$ have parameters $\theta$ and is constructed in a way that is easy to make in a Quantum Computer. Quantum correlations are incorporated using $U(\phi)$ with parameters $\phi$.
+
+Thus the mixed state is given by:
+\begin{equation*}
+    \rho_{\theta \phi} = U(\phi) \rho_\theta U^\dagger(\phi)
+\end{equation*}
+
+Which we will call the visible state.
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+      \lstick{\ket{0}}  & & \gate[wires=3]{V_x} \slice{\color{red} $\rho_\theta = \sum_x p_\theta (x) | x \rangle \langle x |$}& \gate[wires=3]{U(\theta)} & \qw \\
+     \lstick{\ket{0}}   & &                    &                            & \qw \\
+      \lstick{\ket{0}}  & &                    &                            & \qw
+    \end{quantikz}
+    \caption{Variational Quantum Thermalizer circuit.}
+    \label{fig: VQT}
+\end{figure}
+
+Without loss of generality, one can consider the altent space to be a thermal state of a given parametrized Hamiltonian:
+
+\begin{equation*}
+    \rho_\theta = \frac{1}{Z_\theta} e^{- K_\theta} \ \ \ \ Z_\theta = tr( e^{- K_\theta} )
+\end{equation*}
+
+We will call $K_\theta$ the \textit{latent modular Hamiltonian}, and $Z_\theta$ is \textit{the model partition function}. For such a latent space, we have that the visible state is given by:
+
+\begin{equation*}
+    \rho_{\theta \phi} = \frac{1}{Z_\theta} e^{- U(\phi) K_\theta U^\dagger (\phi)} \equiv \frac{1}{Z_\theta} e^{- K_{\theta \phi}}
+\end{equation*}
+
+Where the \textit{model modular Hamiltonian} is defined as $K_{\theta \phi}$. 
+
+In order to train this model, we have to define the Von Neumann Entropy, which is invariant under unitary action:
+
+\begin{equation*}
+    S( \rho_\theta) = - tr ( \rho_\theta \log \rho_\theta )
+\end{equation*}
+
+Using the invariance, we have:
+
+\begin{equation*}
+    S ( \rho_\theta ) = S( U(\phi) \rho_\theta U^\dagger (\phi) ) = S ( \rho_{\theta \phi} )
+\end{equation*}
+
+Thus estimating the entropy in the visible state is the same as the latent space!
+
+\subsubsection{Algorithm}
+\label{Subsubsec: VQT algorithm}
+Problem: Given a Hamiltonian $H$ and a target inverse temperature $\beta \equiv \frac{1}{T}$, we wish to generate an approximation to the Thermal State:
+
+\begin{equation*}
+    \sigma_{\beta} = \frac{1}{Z_\beta} e^{- \beta H} \ \ \ Z_\beta = tr( e^{- \beta H} )
+\end{equation*}
+
+Where $Z_\beta$ is the \textit{Thermal partition function}. The strategy is to convert this problem to a quantum-probabilistic variational learning task. Let's consider an ansatz for the thermal state, $\rho_{\theta \phi}$, let's analyse the relative entropy between this unknown thermal state and our ansatz:
+
+\begin{equation*}
+\begin{split}
+    D( \rho_{\theta \phi} || \sigma_\beta ) & = - S( \rho_{\theta \phi} ) - tr( \rho_{\theta \phi} \log \sigma_\beta ) \\ 
+    & = - S( \rho_{\theta \phi} ) - \beta tr( \rho_{\theta \phi} H ) + \log Z_\beta
+\end{split}
+\end{equation*}
+
+This is the \textit{quantum relative free energy} of our model with respect to the target Hamiltonian $H$. This is called \textit{relative free energy}, because it is the difference of the free energy $F( \nu ) = tr ( \nu H ) - \frac{1}{\beta} S ( \nu )$, up to a factor $\beta$, of the thermal state and the ansatz:
+
+\begin{equation*}
+    D( \rho_{\theta \phi} || \sigma_\beta ) = \beta F( \rho_{\theta \phi} ) - \beta F( \sigma_\beta)
+\end{equation*}
+
+For the variational quantum algorithm is important to note that the positivity of the free energy implies that the minimum of the free energy is achieved by the Thermal state:
+
+\begin{equation*}
+    D( \rho_{\theta \phi} || \sigma_\beta ) = 0 \ \ \ \Rightarrow F(\rho_{\theta \phi}) = F( \sigma_\beta ) \ \ \text{and} \ \ \rho_{\theta \phi} = \sigma_\beta
+\end{equation*}
+
+Therefore, our goal is to minimize the free energy as the loss function:
+
+\begin{equation*}
+    \mathcal{L}_{VQT} = \beta F( \rho_{\theta \phi} ) = \beta tr( \rho_{\theta \phi} H ) - S ( \rho_{\theta \phi} )
+\end{equation*}
+
+and find optimal parameters $\{ \theta^*, \phi^* \}$, such that $\rho_{\theta \phi} = \sigma_\beta$.
+
+The great advantage of the QHBM structure (fig~\ref{fig: VQT}) is that the entropy of the variational model distribution is equal to the latent distribution: $S(\rho_{\theta \phi}) = S(\rho_{\theta})$. Thus the only evaluation that needs to be done in a quantum computer is the \textbf{energy expectation}, therefore having the same cost as the Variational Quantum Eigensolver.
+
+Furthermore, the VQE is a limiting case of the VQT when $t \rightarrow 0$:
+
+\begin{equation*}
+    \Tilde{\mathcal{L}} = \mathcal{L}_{VQT} = F(\rho_{\theta \phi}) = tr( \rho_{\theta \phi} H ) - \frac{1}{\beta} S( \rho_{\theta \phi} )
+\end{equation*}
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \lim_{\beta \rightarrow \infty} \Tilde{\mathcal{L}} = tr( \rho_{\theta \phi} H ) = \langle H \rangle_{\theta \phi}
+\end{empheq}
+
+The VQT is the natural generalization of the VQE for non-zero temperature states.
+
+\subsubsection{Structure of the Latent Space}
+\label{Subsubsec: VQT Latent Space}
+In~\cite{verdon2019VQT} they consider a good choice of latent space when it is "quantum simple", i.e. low complexity for quantum computers to prepare. Let's consider the most simple latent space model which is the \textit{Factorized latent Space}.
+
+\paragraph{Factorized Latent Space Model:} Let's choose a quantum system that is separated into N smaller dimensional subsystems:
+
+\begin{equation*}
+    \rho_\theta = \bigotimes_{j=1}^N \rho_j ( \theta_j )
+\end{equation*}
+
+Using this latent space we have that the latent modular Hamiltonian becomes a sum of the subsystems' Hamiltonians:
+
+\begin{equation*}
+    K_\theta = \sum_j K_j ( \theta_j ) \ \ , \ \ \rho_\theta = \bigotimes_{j=1}^N \frac{1}{\theta_j} e^{- K_j ( \theta_j )} \ \ , \ \ Z_{\theta_j} = tr[ e^{-K_j ( \theta_j )}]
+\end{equation*}
+
+When estimating the expectation value of the modular Hamiltonian it becomes the sum of the subsystems' modular Hamiltonians:
+
+\begin{equation*}
+    \langle K_\theta \rangle = \sum_j \langle K_j (\theta_j) \rangle
+\end{equation*}
+
+The partition functions is the product of the subsystems' partition functions $Z_\theta = \prod_j Z_{\theta_j}$ and the log becomes $\log Z_\theta = \sum_j \log Z_{\theta_j}$ so does the entropy $S( \rho_\theta) = \sum_j S( \rho_j ( \theta_j ) )$ which is much easier to calculate than a non-factorizable state.
+
+Another feature is that the number of parameters scales linearly with the number of the subsystems $N$. By learning a completely decorrelated representation in the latent space, we are learning a representation which has a natural orthogonal basis for its latent space.
+
+\paragraph{Examples}
+\paragraph{2.1) Qudit Operators:} The first class are qudits operators diagonal in the computational basis. The more general qudit representation is given by:
+
+\begin{equation*}
+    K_j ( \theta_j ) = \sum_{k=1}^{d_j} \theta_{jk} | k \rangle \langle k |_j
+\end{equation*}
+
+Where the eigenvalues of this Hamiltonian form a set of variational parameters of the distribution. The latent distribution is similar to a softmax function.
+
+\paragraph{2.2) Continuous-Variable quantum node (qunode):} It is a Harmonic Oscillator, which the exponential distribution becomes a single-mode thermal state:
+
+\begin{equation*}
+    K_j ( \theta_j ) = \frac{\theta_j}{2} ( x^2 + p^2) = \theta_j ( a_j^\dagger a_j + \frac{1}{2} )
+\end{equation*}
+
+This is the closest thing that one can have of a latent product of Gaussians which are of common use in Deep Learning.
+
+\paragraph{2.3) Particle number of fermions:} it is similar to qumodes but for Fermions:
+
+\begin{equation*}
+    K_j ( \theta_j ) = \theta_j c_j^\dagger c_j
+\end{equation*}

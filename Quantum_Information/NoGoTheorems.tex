@@ -1,0 +1,95 @@
+\subsection{No-go Theorems}
+\label{Subsec: No-go Theorems}
+
+\subsubsection{No communication Theorem}
+\label{Subsubsec: No Comunication theorem}
+
+\paragraph{}Consider that you have a composite physical system with $\mathcal{H} = \mathcal{H}_A \otimes \mathcal{H}_B$ and those states are finite dimensional. A general state on $\mathcal{H}$ is given by: $\rho = \sum_i \sigma_i \otimes \omega_i$, where $\sigma_i \in \mathcal{L}(\mathcal{H}_A)$ and $\omega_i \in \mathcal{L}(\mathcal{H}_B)$.
+
+The observer in A makes a measurement only on her subsystem:
+
+\begin{equation}
+    P(\rho) = \sum_j (K_j \otimes \mathds{1}_B)^{\dagger} \rho (K_j \otimes \mathds{1}_B)
+\end{equation}
+
+Where $K_j$ are Kraus Operators(See~\ref{Subsec: Channels}) with the property: $\sum_j K_j K_j^{\dagger} = \mathds{1}$.
+
+Now the state for an observer in B is given by the partial trace over A: 
+\begin{equation}
+    \rho_B = Tr_A (P(\rho))
+\end{equation}
+
+So let's see if there is any difference on the B state:
+
+\begin{equation}
+    \begin{split}
+        \rho_B & = Tr_A ( \sum_j (K_j \otimes \mathds{1}_B)^{\dagger} \rho (K_j \otimes \mathds{1}_B) ) \\
+        & = Tr_A(\sum_i \sum_j K_j^{\dagger} \sigma_i K_j \otimes \omega_i) \\
+        & = \sum_i \sum_j Tr(K_j^{\dagger} \sigma_i K_j) \otimes \omega_i \\
+        & = \sum_i Tr( \overbrace{\sum_j K_j K_j^{\dagger}}^{= \mathds{1}} \sigma_i) \otimes \omega_i \\
+        & = \sum_i Tr(\sigma_i) \otimes \omega_i \\
+        & = Tr_A(\rho)
+    \end{split}
+\end{equation}
+
+Since the state before and after the local operations are indistinguishable for B, an observer in A doesn't have a way to communicate with and observer in B by using local operations. \textbf{There is no faster than light communication on Quantum Mechanics!}.
+
+
+\subsubsection{No Cloning Theorem}
+\label{Subsubsec: No Cloning theorem}
+
+\begin{theorem}[No cloning Theorem]
+There is no unitary U acting on $\mathcal{H} \otimes \mathcal{H}$ such that for all $\ket{\phi} \in \mathcal{H}$ we have:
+
+\begin{equation}
+    \label{Eq: No cloning theorem}
+    U \ket{\phi} \otimes \ket{0} = \ket{\phi} \otimes \ket{\phi}
+\end{equation}
+\end{theorem}
+
+This theorem can be represented by the following circuit:
+\begin{figure}[H]
+\centering
+\begin{quantikz}
+    \lstick{$\ket{\phi}$}   & \gate[wires=2]{U} &  \rstick{$\ket{\phi}$} \qw \\
+    \lstick{$\ket{0}$}  &  & \rstick{$\ket{\phi}$} \qw
+\end{quantikz}    
+\caption{No-Cloning Theorem Circuit}
+\label{Figure: Circuit No-Cloning Theorem}
+\end{figure}
+
+\begin{proof}
+This theorem is proved by contradiction. Suppose that exists this unitary, so given $\ket{\phi}, \ket{\psi} \in \mathcal{H}$, we have that:
+
+\begin{equation}
+\begin{split}
+    U \ket{\phi} \otimes \ket{0} & = \ket{\phi} \otimes \ket{\phi} \\ 
+    U \ket{\psi} \otimes \ket{0} & = \ket{\psi} \otimes \ket{\psi}
+\end{split}
+\end{equation}
+
+Taking the scalar product: 
+
+\begin{equation}
+    \begin{split}
+        (\bra{\phi} \otimes \bra{\phi}) (\ket{\psi} \otimes \ket{\psi}) & =( \bra{\phi} \otimes \bra{0} U^\dagger)  (U \ket{\psi} \otimes \ket{0}) \\
+        \braket{\phi}{\psi}\braket{\psi}{\phi} & = \braket{\phi}{\psi} \braket{0}{0}\\
+        \Rightarrow \braket{\phi}{\psi}^2 & = \braket{\phi}{\psi}
+    \end{split}
+\end{equation}
+
+This is a equation $x^2 - x = 0$, so there are two possible solutions: 
+
+\begin{itemize}
+    \item  $\braket{\phi}{\psi} = 0$, therefore $\ket{\phi}$, $\ket{\psi}$ are ortogonal;
+    \item $\braket{\phi}{\psi} = 1$, therefore $\ket{\phi}$, $\ket{\psi}$ are identical;
+\end{itemize}
+
+This is a contradiction, because we supposed that U would work for every state.
+
+\end{proof}
+
+The No-Cloning theorem is really important in Quantum Cryptography. Because you cannot clone quantum states, it is impossible for a eavesdropper to hear your communication without you knowing. See BB84 Protocol~\citep{BB84}.
+
+%\subsubsection{No Deleting Theorem}
+%\label{Subsubsec: No Deleting Theorem}

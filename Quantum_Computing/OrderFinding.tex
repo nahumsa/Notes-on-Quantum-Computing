@@ -1,0 +1,275 @@
+\subsection{Order Finding}
+\label{Subsec: Order Finding}
+
+For any $x, N \in \mathds{Z}^+$, with no common factors, that is $\gcd(x,N) = 1$, the order of x modulo N is defined as the least positive integer, r, such that $x^r \equiv 1 \mod N$. The order-finding problems is to determine the order for some specified $x$ and $N$. 
+
+This problem is believed to be hard on classical computers, there is no known algorithm to solve it using polynomial resources in the $O(L)$ bits needed to specify the problem, where $L \equiv \lceil \log N \rceil$. In the other hand, there is a quantum algorithm for order finding using polynomial resources that uses the phase estimation algorithm applied to the following unitary operator:
+
+\begin{equation}
+    M_x \ket{y} = \ket{xy \mod N}
+\end{equation}
+
+with $y \in \{ 0,1 \}^L$. Note that when $N \leq y \leq 2^L -1$, we use the convention that $xy \mod N$ is just $y$, therefore $U$ only acts non-trivially when $0 \leq y \leq N - 1$.
+
+Note that $M_x$ is unitary: ($\Tilde{y} \in \mathbb{Z}_N$
+
+\begin{equation*}
+    M_x M_{x^-1} \ket{\Tilde{y}} = \ket{x(x^-1y) \mod N} = \ket{\Tilde{y}}
+\end{equation*}
+
+\begin{equation*}
+    M_{x^-1} M_x \ket{\Tilde{y}} = \ket{x^-1(xy) \mod N} = \ket{\Tilde{y}}
+\end{equation*}
+
+What are the eigenvectors and eigenvalues of $M_x$?
+
+Consider the following states:
+
+\begin{itemize}
+    \item $\ket{\psi_0}$:
+
+\begin{equation*}
+    \ket{\psi_0} = \frac{1}{\sqrt{r}} \bigg[ \ket{\Tilde{1}} + \ket{\Tilde{x}} + \dots + \ket{\Tilde{x}^{r-1}} \bigg] 
+\end{equation*}
+
+\begin{equation*}
+    M_x \ket{\psi_0} = \frac{1}{\sqrt{r}} \bigg[ \ket{\Tilde{x}} + \ket{\Tilde{x}^2} + \dots + \ket{\Tilde{x}^{r-1}} + \ket{\Tilde{x}^{r}} \bigg] = 1 \ket{\psi_0}
+\end{equation*}
+
+\item $\ket{\psi_1}$, given that $w_r = e^{\frac{2\pi i}{r}}$:
+
+\begin{equation*}
+    \ket{\psi_1} = \frac{1}{\sqrt{r}} \bigg[ \ket{\Tilde{1}} + \omega_r^{-1} \ket{\Tilde{x}} + \dots + \omega_r^{-(r-1)}\ket{\Tilde{x}^{r-1}} \bigg] 
+\end{equation*}
+
+\begin{equation*}
+\begin{split}
+    M_x\ket{\psi_1} = & \frac{1}{\sqrt{r}} \bigg[ \ket{\Tilde{x}} + \omega_r^{-1} \ket{\Tilde{x}^2} + \dots + \omega_r^{-(r-1)}\ket{\Tilde{x}^{r}} \bigg] \\
+     = & \frac{\omega_r}{\sqrt{r}} \bigg[ \omega_r^{-1}\ket{\Tilde{x}} + \omega_r^{-1} \ket{\Tilde{x}^2} + \dots + \overbrace{\omega_r^{-(r)}}^{=1}\ket{\Tilde{1}} \bigg] \\
+     = & \omega_r \ket{\psi_1}
+\end{split}
+\end{equation*}
+\end{itemize}
+
+Thus in general the eigenstate and its eigenvalues are given by:
+
+\begin{equation}
+    \ket{u_s} \equiv \frac{1}{\sqrt{r}} \sum_{k=0}^{r-1} \exp \bigg[ - \frac{2 \pi i s k }{r}\bigg] \ket{\Tilde{x}^k}
+\end{equation}
+
+for $s \in [0, r-1]$. Lets show this:
+
+\begin{equation*}
+\begin{split}
+    M_x \ket{u_s} = & \frac{1}{\sqrt{r}} \sum_{k=0}^{r-1} \exp \bigg[ \frac{- 2 \pi i s k}{r} \ket{\Tilde{x}^{k+1}}\bigg] \\
+                  = & \frac{1}{\sqrt{r}} \sum_{k=0}^{r-1} \exp \bigg[ \frac{- 2 \pi i s (k-1)}{r} \ket{\Tilde{x}^{k}}\bigg] \\
+                  = & \exp \bigg[ \frac{2 \pi i s}{r}\bigg] \frac{1} {\sqrt{r}} \sum_{k=0}^{r-1} \exp \bigg[ \frac{- 2 \pi i s k}{r} \ket{\Tilde{x}^{k}}\bigg] \\
+                  = & \exp \bigg[ \frac{2 \pi i s }{r} \bigg] \ket{u_s}
+\end{split}    
+\end{equation*}
+
+Therefor we can use phase estimation to otain the corresponding eigenvalues $\exp \big( \frac{2\pi i s}{r} \big)$, which we can obtain the order $r$!
+
+To show that $M_x$ is unitary is just to show that $x \in \mathbb{Z}_n$, which is trivial.
+
+There are two important requirements for us to use phase estimation:
+\begin{enumerate}
+    \item We need to prepare $\ket{u_s}$ efficiently which we require to know $r$, but we can do this with a trick:
+    \begin{equation*}
+    \begin{split}
+        \sum_{s=0}^{r-1} \ket{u_s} = & \frac{1}{\sqrt{r}} \sum_{s=0}^{r-1} \sum_{k=0}^{r-1} \exp \bigg[ \frac{- 2 \pi i k s}{r} \bigg] \ket{\Tilde{x}^k} \ , \ \sum_{s=0}^{r-1} e^{\frac{-2\pi i k s}{r}} = \delta_{k,0} r \\
+        = & \frac{1}{\sqrt{r}} \sum_{k=0}^{r-1} r \delta_{k,0} \ket{\Tilde{x}^k} = \sqrt{r} \ket{\Tilde{x}^0} \\
+        = & \sqrt{r} \ket{\Tilde{x}^0}
+        \end{split}
+    \end{equation*}
+
+    Therefore:
+    \begin{equation}
+        \ket{1} = \frac{1}{\sqrt{r}} \sum_{s=0}^{r-1} \ket{u_s}
+    \end{equation}
+
+    \item We must have an efficient way to construct a controlled-$U^{2^j}$ operation for any integer j. We want to compute:
+    
+    \begin{equation*}
+        \begin{split}
+        \ket{z} \ket{y} \rightarrow & \ket{z}U^{z_t 2^{t-1}} \dots U^{z_1 2^{0}} \ket{y} \\
+        %& = \ket{z} \ket{x^{z_t 2^{t-1}} \dots x^{z_1 2^0} y \mod N} \\
+        %& = \ket{z} \ket{x^z y  \mod N} \\
+        \end{split}
+    \end{equation*}
+    
+    The basic idea is to reversibly compute the function $x^z \mod N$ of z in a third register and then to reversibly multiply the contents on the second register by $x^z \mod N$, using the trick of uncomputation to erase the content of the third register upon completion.
+\end{enumerate}
+    
+The algorithm for modular exponentiation has two phases:
+
+\begin{itemize}
+    \item[P1)] Compute $x^2 \mod N = \Tilde{x}^2$ by squaring $\Tilde{x}$ and square to compute $\Tilde{x}^4$, $\Tilde{x}^6$, $\dots$ until you can compute $\Tilde{x}^{2^j}$. We use $t = 2L + 1 \rceil \log ( 2 + \frac{1}{2\epsilon} \lceil = O(L)$ squaring operations at a cost of $O(L^2)$ each, therefore having a cost of $O(L^3)$ for P1.
+    \item[P2)] We can see that:
+    \begin{equation*}
+        \Tilde{x}^z = (\Tilde{x}^{z_t 2^{t-1}}) \dots (\Tilde{x}^{z_1 2^{0}})
+    \end{equation*}
+    Therefore we perform $t-1$ modular multiplications at a cost $O(L^2)$ each, this is computed using $O(L^3)$ gates. 
+    Thus, we can construct a reversible circuit with $t$ bit register and a L bit register which can be translated to a quantum circuit with $O(L^3)$ gates.
+\end{itemize}
+
+The algorithm is:
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+        \lstick{\ket{0}}  & \qw \qwbundle{n} &  \gate{H} & \ctrl{1} & \gate{FT^\dagger} & \meter{}\\
+        \lstick{\ket{1}}  & \qw \qwbundle{m} & \qw & \gate{x^j \mod N} & \qw & \qw  \rstick{\ket{1}}
+    \end{quantikz}
+    \caption{Full circuit for modular exponentiation.}
+    \label{fig: Modular exponentiation full}
+\end{figure}
+
+Let's see how this algorithm works:
+
+\begin{equation}
+\label{Eq: Modular Exponentiation}
+\begin{split}
+    \ket{\psi} & = \frac{1}{\sqrt{r}} \sum_{j=0}^{r-1} \ket{j} U^j \ket{1} =  \frac{1}{\sqrt{r}} \sum_{j=0}^{r-1} \ket{j} U^j \bigg( \frac{1}{\sqrt{r}} \sum_{s=0}^{r-1} \ket{u_s}\bigg) \\
+    & = \frac{1}{r} \sum_{j=0}^{r-1} \sum_{s=0}^{r-1} \ket{j} e^{\frac{2 \pi i s j }{r}} \ket{j} \bigg( \frac{1}{\sqrt{r}} \sum_{k=0}^{r-1} e^{\frac{- 2 \pi i k s}{r}} \ket{\Tilde{x}^k} \bigg) \\
+    & = \frac{1}{r^{\frac{3}{2}}} \sum_{j=0}^{r-1} \sum_{k=0}^{r-1} \bigg( \sum_{s=0}^{r-1} \overbrace{e^{\frac{2 \pi i (j - k)}{r}}}^{r \delta_{j,k}} \ket{j} \ket{\Tilde{x}^k} \bigg) \\
+    & = \frac{1}{\sqrt{r}} \sum_{j=0}^{r-1} \ket{j} \ket{\Tilde{x}^j}
+\end{split}
+\end{equation}
+
+We can show that:
+
+\begin{equation*}
+    \frac{1}{\sqrt{r}} \sum_{s=0}^{r-1}e^{\frac{2 \pi i s j }{r}} \ket{u_s} = \ket{\Tilde{x}^j}
+\end{equation*}
+
+\begin{equation*}
+\begin{split}
+    \frac{1}{r} \sum_{k=0}^{r-1} e^{\frac{2 \pi i s j }{r}} \\ \sum_{k=0}^{r-1} e^{\frac{2 \pi i k s}{r}} \ket{\Tilde{x}^k}  & = \frac{1}{r} \sum_{k=0}^{r-1} \overbrace{\bigg( \sum_{s=0}^{r-1} e^{\frac{2 \pi i s (j - k)}{r}} \bigg)}^{r \delta_{k,j}} \ket{\Tilde{x}^k}\\
+    & = \sum_{k=0}^{r-1} \delta_{k,j} \ket{\Tilde{x}^k} = \ket{\Tilde{x}^j}
+\end{split}
+\end{equation*}
+
+Thus we can rewrite equation~\ref{Eq: Modular Exponentiation} as:
+\begin{equation*}
+\begin{split}
+    \ket{\psi} & = \frac{1}{\sqrt{r}} \sum_{j=0}^{r-1} \ket{j} \ket{\Tilde{x}^j} = \frac{1}{r} \sum_{s=0}^{r-1} \overbrace{\sum_{j=0}^{r-1} e^{\frac{2 \pi i s j}{r}} \ket{j}}^{\mathrm{FT}^\dagger} \ket{u_s} \\
+    & = \frac{1}{\sqrt{r}} \sum_{s=0}^{r-1} \ket{\overline{s/r}} \ket{u_s}
+\end{split}
+\end{equation*}
+
+After measuring the 1st register we get exactly $\ket{\overline{s/r}}$. This is not yet our answer for finding $r$ we need to know what $\overline{s}$ is, this is done using the continued fraction expansion.
+
+When we say continued fraction expansion, we mean that we want to write $\frac{A}{B}$, $\gcd(A,B) = 1$ as:
+\begin{equation}
+    \label{Eq: Continued Fraction Expansion}
+    \frac{A}{B} = a_0 + \frac{1}{a_1 + \frac{1}{\dots + \frac{1}{a_m}}} = [a_0, a_1, \dots, a_m]
+\end{equation}
+
+Let's see one example of the continued fraction expansion:
+
+\begin{equation*}
+\begin{split}
+    \frac{31}{13} & = 2 + \frac{5}{13} = 2 + \frac{1}{\frac{13}{5}} = 2 + \frac{1}{2 + \frac{3}{5}} \\
+    & = 2 + \frac{1}{2 + \frac{1}{1 + \frac{2}{3}}} = 2 + \frac{1}{2 + \frac{1}{1 + \frac{1}{2}}} = [2,2,1,1,2]
+\end{split}
+\end{equation*}
+
+This is done by $O(L^2)$ steps for division with $O(L)$ inverting steps, so computed with $O(L^3)$ operations.
+
+There is one step left, we need to show that obtaining r from the continued fraction expansion is efficient, we thus demonstrate the following theorem:
+
+\begin{theorem}
+Suppose $p/q$ is a rational number such that:
+\begin{equation*}
+    \bigg| \frac{p}{q} - x \bigg| \leq \frac{1}{2q^2}
+\end{equation*}
+
+Then $p/q$ is convergent given the continued fraction for x, and thus can be computed in $O(L^3)$ operations using the continued fractions algorithm.
+\end{theorem}
+
+\begin{proof}
+Let $p/q = [a_0, \dots, a_n]$ be the continued fraction expansion for $p/q$. ad define $p_j \equiv a_j p_{j-1} + p_{j-2}$ and $q_j \equiv a_j q_{j-1} + q_{j-2}$, so that $\frac{p_n}{q_n} = \frac{p}{q}$. We define $\delta$ by the following equation: 
+\begin{equation}
+    \label{eq: Delta equation}
+    x \equiv \frac{p_n}{q_n} + \frac{\delta}{2 q_n^2}
+\end{equation}
+
+We also define $\lambda$ by the following equation:
+\begin{equation}
+    \label{Eq: lambda equation}
+    \lambda \equiv 2 \bigg( \frac{q_n p_{n-1} - p_n q_{n-1}}{\delta} \bigg) - \frac{q_{n-1}}{q_n}
+\end{equation}
+
+we define $\lambda$ because it satisfies the following equation:
+
+\begin{equation*}
+    x = \frac{\lambda p_n + p_{n-1}}{\lambda q_n + q_{n-1}} \xrightarrow x = [a_0, \dots, a_n, \lambda]
+\end{equation*}
+
+Firstly we need to show that: $q_n p_{n-1} - p_n q_{n-1} = (-1)^n$, this will be done by induction that this is true for $n \geq 1$, using that $\gcd (p_n, q_n) = 1$
+\begin{itemize}
+    \item For $n=1$: 
+    \begin{equation*}
+    \begin{split}
+        & (p_0 = a_0 \ , \ q_0 = 1 \ ,\ \mathrm{and} p_1 = 1 + a_0 a_1) \\
+        & q_1 p_0 - p_1 q_0 = (a_1 q_0) a_0 - (1 + a_0 a_1) = -1
+    \end{split}
+    \end{equation*}
+    
+    \item Suppose for $n$ is valid:
+    \begin{equation*}
+        q_n p_{n-1} - p_n q_{n-1} = (-1)^n
+    \end{equation*}
+    
+    \item For n=n+1:
+    \begin{equation*}
+    \begin{split}
+        q_{n+1} p_n - p_{n+1} q_n = & (a_n q_n + q_{n-1}) p_n - (a_n p_n + p_{n-1}) q_n \\
+        = & a_n q_n p_n + p_n q_{n-1} - a_n p_n q_n - p_{n-1} q_n \\
+        = & q_{n-1} p_n - p_{n-1} q_n  \\
+        = & -(q_n p_{n-1} - p_n q_{n-1}) = (-1) (-1)^n \\
+        = & (-1)^{n+1} \\
+    \end{split}
+    \end{equation*}
+\end{itemize}
+
+Therefore we can choose $n$ being even: 
+\begin{equation*}
+    \lambda = \frac{2}{\delta} - \frac{q_{n-1}}{q_n} > 2 - 1 > 1
+\end{equation*}
+
+Therefore $\lambda$ is a rational number greater than 1, so has a simple continued fraction, $\lambda = [b_0, \dots, b_m]$ and so $x = [a_0, \dots, a_n, b_0, \dots, b_m]$ is a simple finite continued fraction for x with $p/q$ as a convergent.
+\end{proof}
+
+For our problem $x=\phi$ and $\frac{p}{q} = \frac{s}{r}$. Since $\phi$ is an approximation of $\frac{s}{r}$ accurate to $2L + 1$ bits, it follows that $\big| \frac{s}{r} - \phi \big| \leq 2^{-2L-1} \leq \frac{1}{2 r^2}$, since $r \leq N \leq 2^L$. Thus, the theorem applies.
+
+Summarizing, given $\phi$ the continued fractions algorithm produces both numbers $s'$ and $r'$ efficiently with no common factors such that $\frac{s'}{r'} = \frac{s}{r}$. The number $r'$ is our candidate for the order which we can verify by doing $x^{r'} \mod N$ and see if it is equal to 1.
+
+\paragraph{Performance}
+
+How can this algorithm fail?
+\begin{itemize}
+    \item The phase estimation gives a bad estimate fo $\frac{s}{r}$. This occurs with probability $\epsilon$ and we can surpass this error growing our circuit.
+    \item It might be that s and r have a common factor, then we would find $r'$ that is a factor of r, but we have three ways around this problem:
+    \begin{enumerate}
+        \item The probability of a randomly chosen $s \in [0, r-1]$ to be prime is at least $\frac{1}{2 \log r} > \frac{1}{2 \log N}$. Thus, repeating the algorithm $2 \log N$ times we will, with high probability, observe a phase $\frac{s}{r}$ such that s and r are coprime.
+        \item If $r' \neq r$ is guaranteed to be a factor of r, unless $s=0$ which this possibility occurs with a probability $\frac{1}{r} \leq \frac{1}{2}$ which can be discounted with a few repetitions.
+        
+        Suppose we replace $a$ by $a' \equiv a^{r'} \mod N$. Then the order of $a'$ is $\frac{r}{r'}$. We can repeat the algorithm, and try to compute the order of $a'$, if we succeed we compute the order of a, because $r = r' \frac{r}{r'}$. If we fail, we iterate until we determine the order of $a$. At most $\log r = \log L$ iterations are required, since each repetition reduces the order of the current candidate $a^{'\dots}$ by a factor of at least 2.
+        
+        \item The other idea is to repeat the phase estimation and continued fraction twice, we would obtain $s_1' \ , \ r_1'$ and $s_2' \ , \ r_2'$. Provided that $s_1'$ and $s_2'$ has no common factors, $r$ may be extracted by taking the least common multiple of $r_1$ and $r_2$. The probability of $s_1'$ and $s_2'$ have no common factors is given by:
+        \begin{equation*}
+            1 - \sum_q p(q | s_1') p(q| s_2')
+        \end{equation*}
+        where the sum is over all primes $q$ and $p(x|y)$ is the probability of $x$ dividing $y$.
+        
+        If $q$ divides $s_1'$ then it must also divide the true value of $s$, $s_1$, so to upper bound $p(q|s_1')$ it suffices to upper bound $p(q | s_1)$, where $s_1$ is chosen at random from 0 through r-1. Since $p(q|s_1) \leq \frac{1}{s}$ and $p(q|s_2) \leq \frac{1}{s}$.
+        
+        \begin{equation*}
+            1 - \sum_q p(q|s_1') p(q|s_2') \geq 1 - \sum_q \frac{1}{q^2} \geq \frac{1}{4}
+        \end{equation*}
+        
+        And thus the probability of obtaining the correct $r$ is $\frac{1}{4}$.
+    \end{enumerate}
+\end{itemize}

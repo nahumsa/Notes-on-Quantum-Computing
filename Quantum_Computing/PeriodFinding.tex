@@ -1,0 +1,60 @@
+\subsection{Period Finding}
+\label{subsec: Period Finding}
+
+\textbf{Problem:} Suppose $f$ is a periodic function producing a single bit as output and such that $f(x+r) = f(x)$, for some unknown $r \in (0, 2^L)$, where $x,r \in \{ 0,1,2, \dots \}$.
+
+Given a quantum blackbox $U$, which perform $U\ket{x} \ket{y} \rightarrow \ket{x} \ket{y \oplus x} $, how many black box queries and other operations are needed to determine $r$? Here we present and algorithm to solve with only one query and $O(L^2)$ other operations.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\SetKwInOut{Input}{input}
+\SetKwInOut{Output}{output}
+\SetKwInOut{Runtime}{runtime}
+\Input{\begin{enumerate}
+    \item A blackbox which perform $U\ket{x}\ket{y} = \ket{x}\ket{x + f(x)}$
+    \item A state that store the function evaluation, initialized at $\ket{0}$
+    \item $t = O( L + \log (\frac{1}{\epsilon})$ qubits initialized at $\ket{0}$
+\end{enumerate}
+}
+\Output{The least integer $r>0$ such that $f(x+r)=f(x)$}
+\Runtime{One use of $U$, and $O(L^2)$ operations. Succeeds with probability of $O(1)$.}
+
+\begin{enumerate}
+    \item $\ket{0}\ket{0} \rightarrow$ initial state.
+    \item Create superposition: 
+    \begin{equation*}
+        \frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t-1} \ket{x} \ket{0}
+    \end{equation*}
+    \item Apply U:
+    \begin{equation*}
+        \frac{1}{\sqrt{2^t}} \sum_{x=0}^{2^t-1} \ket{x} \ket{f(x)} \approx \frac{1}{\sqrt{r 2^t}} \sum_{l=0}^{r-1} \sum_{x=0}^{2^t-1} e^{\frac{2 \pi i l x}{r}} \ket{x} \ket{\hat{f}(l)}
+    \end{equation*}
+    \item Apply reverse Fourier Transform to 1st register:
+    \begin{equation*}
+        \frac{1}{\sqrt{r}} \sum_{l=0}^{r-1} \ket{\Tilde{l/r}} \ket{\hat{f}(l)}
+    \end{equation*}
+    \item Measure first register to get $\Tilde{l/r}$.
+    \item Apply continuous fraction to get $r$.
+\end{enumerate}
+\caption{Period finding algorithm}
+\end{algorithm}
+
+The key for this algorithm is step \textbf{3}:
+
+\begin{equation*}
+    \ket{\hat{f}(l)} = \frac{1}{\sqrt{r}} \sum_{x=0}^{r-1} e^{\frac{-2 \pi i l x}{r}} \ket{f(x)}
+\end{equation*}
+
+Where $\ket{\Tilde{f}(x)}$ is the fourier transform of $\ket{f(x)}$. This is based on:
+
+\begin{equation*}
+    \ket{f(x)} = \frac{1}{\sqrt{r}} \sum_{l=0}^{r-1} e^{\frac{2 \pi i l x}{r}} \ket{\Tilde{f}(l)}
+\end{equation*}
+
+Where 
+\begin{equation*}
+    \sum_{l=0}^{r-1} e^{\frac{2 \pi i l x}{r}} = \begin{cases}
+    r,& \text{if } x= kr \ , \ k \in \mathbb{Z}\\
+    0,              & \text{otherwise}
+\end{cases}
+\end{equation*}

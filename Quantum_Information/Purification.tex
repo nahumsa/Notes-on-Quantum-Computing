@@ -1,0 +1,36 @@
+\subsection{Purification}
+\label{Subsection: Purification}
+\paragraph{} Given a density matrix $\rho_A \in \mathcal{L}(\mathcal{H}_A)$, there always is an pure state $\ket{\psi_{AB}} \in \mathcal{H}_A \otimes \mathcal{H}_B$ such that: $\rho_A = Tr_B (\ket{\psi_{AB}}\bra{\psi_{AB}})$. 
+
+For instance, consider $\rho_A = \sum_{i=1}^N p_i \ket{\phi_i}\bra{\phi_i}$ with $p_i \geq 0$ and $\sum_{i=1}^N p_i = 1$. We can suppose that there is an orthonormal basis $\{\ket{i} \}_{i=1}^N \in \mathcal{H}_B$, then we can take the pure state as:
+\begin{equation}
+    \ket{\psi_{AB}} = \sum_{i=1}^N \sqrt{p_i} \ket{\phi_i} \otimes \ket{i}
+\end{equation}
+
+Checking that this is a purification of $\rho_A$:
+\begin{equation}
+    \begin{split}
+        Tr_B (\ket{\psi_{AB}}\bra{\psi_{AB}}) & = Tr_B \big\{ \sum_{i,j} \sqrt{p_i p_j} \ket{\phi_i}\bra{\phi_j} \otimes \ket{i}\bra{j} \big\} \\
+        & = \sum_{i,j} \sqrt{p_i p_j} \ket{\phi_i}\bra{\phi_j} \overbrace{Tr \big(\ket{i}\bra{j}\big)}^{\delta_{ij}} \\
+        & = \sum_i p_i \ket{\phi_i}\bra{\phi_i} \\
+        & = \rho_A
+    \end{split}
+\end{equation}
+
+It is important to note that there are infinite purifications for the density matrix $\rho_A \in \mathcal{L}(\mathcal{H}_A)$. 
+
+\begin{theorem}[Non unicity of purifications]
+If $\ket{\psi_{AB}}$ is such that $\rho_A = Tr_B (\ket{\psi_{AB}}\bra{\psi_{AB}})$, then $\mathds{1} \otimes U_B \ket{\psi_{AB}}$ is also a valid purification with $U_B^{\dagger}U_B = \mathds{1}$.
+\end{theorem} 
+
+\begin{proof}
+Suppose that $\rho_A = Tr_B (\ket{\psi_{AB}}\bra{\psi_{AB}})$, then:
+\begin{equation}
+\begin{split}
+    & Tr_B \big \{ (\mathds{1} \otimes U_B) \ket{\psi_{AB}}\bra{\psi_{AB}} (\mathds{1} \otimes U_B^{\dagger}) \big \} =\\
+    & Tr_B \big \{  \ket{\psi_{AB}}\bra{\psi_{AB}} (\mathds{1} \otimes U_B^{\dagger}) (\mathds{1} \otimes U_B) \big \} =\\
+    & Tr_B (\ket{\psi_{AB}}\bra{\psi_{AB}}) = \rho_A
+\end{split}
+\end{equation}
+Where we used the cyclic property of the trace.
+\end{proof}

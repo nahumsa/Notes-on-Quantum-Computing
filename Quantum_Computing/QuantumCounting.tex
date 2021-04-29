@@ -1,0 +1,69 @@
+\subsection{Quantum Counting}
+\label{subsec: Quantum Counting}
+
+Now we want to find how many solutions, M, are on an N item search problem. For a classical computer we would need $\Omega(N)$ consultations to estimate M.
+
+That problem has some important applications: Firstly, it is important to know M on the search problem, because if $M \geq \frac{N}{2}$ we can only sample it randomly to find the solution. Secondly, this method allows us to know if there is a solution at all for the $N$ item search problem.
+
+Quantum counting is an application of phase estimation to estimate the eigenvalues of the Grover operator, which enables us to find the number of solutions to the search problem.
+
+\subsubsection{Algorithm}
+\label{Subsubsec: Quantum Counting: Algorithm}
+
+Suppose $\ket{a}$ and $\ket{b}$ are two eigenvectors in the space spanned y $\ket{\alpha}$ and $\ket{\beta}$. Let $\theta$ be the angle of the rotation determined by the Grover operator, which is:
+
+\begin{equation*}
+    G = \begin{bmatrix}
+    \cos \theta & -\sin \theta \\
+    \sin \theta & \cos \theta
+    \end{bmatrix} \ \ \ \text{with} \ \sin \theta = \frac{2 \sqrt{M(N-M)}}{N}
+\end{equation*}
+
+The eigenvalues of $G$ are $e^{i\theta}$ and $e^{i(2 \pi - \theta)}$. We can assume that $M \leq \frac{N}{2}$ because we can use the augmented oracle, ensuring that $\sin^2 \frac{\theta}{2} = \frac{M}{2N}$. The circuit for quantum counting is the following:
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+      \lstick[wires=3]{$t$}& \lstick{$\ket{0}$} & \gate[wires=3]{H^{\otimes t}}  & \qw & \qw & \qw & \ & \ & \ctrl{3} & \gate[wires=3]{FT^{\dagger}} & \meter{} \\
+    & \lstick{$\ket{0}$} &  & \qw & \ctrl{2} & \qw & \  \dots \ & \ & \qw & & \meter{}  \\
+    & \lstick{$\ket{0}$} &  & \ctrl{1} & \qw & \qw & \  & \ & \qw & & \meter{} \\
+    \lstick[wires=2]{$n+1$}& \lstick{$\ket{0}$} & \gate[wires=2]{H^{\otimes (n+1)}} & \gate[wires=2]{G^{2^0}} & \gate[wires=2]{G^{2^1}} & \qw & \ \dots &  & \gate[wires=2]{G^{2^{t-1}}} & \qw \\
+    & \lstick{$\ket{0}$} & \qw & &  & \qw & \  \dots &  & & \qw \\
+    \end{quantikz}
+    \caption{Quantum Counting Circuit.}
+    \label{fig: Quantum Counting}
+\end{figure}
+
+The circuit estimates $\theta$ with $m$ bits of accuracy, with a probability of success of at least $1 - \epsilon$. The first register contains $t = m + \lceil \log \big( 2 + \frac{1}{2 \epsilon} \big) \rceil$ qubits, just as the phase estimation algorithm, and the second register has $n+1$ qubits to implement the augmented Grover operator. The second register is initialized at $ \ket{\psi} = \sum_x \ket{x}$, this is a superposition of $\ket{a}$ and $\ket{b}$ thus this gives us an estimation of $\theta$ or $2 \pi - \theta$ accurately with $| \Delta \theta | \leq 2^{-m}$, with probability at least $1 - \epsilon$. The estimate of $2 \pi - \theta$ is equivalent to $\theta$, so we determine $\theta$, so we certainly determine $\theta$ to an accuracy $2^{-m}$ with probability $1 - \epsilon$.
+
+Using that $\sin^2 \big( \frac{\theta}{2} \big) = \frac{M}{2N}$ and our estimate of $\theta$ we can find M. How large is the error in $M$, that we will denote as $\Delta M$?
+
+\begin{equation*}
+    \frac{| \Delta M |}{2N} = \bigg|\sin^2 \bigg( \frac{\theta + \Delta \theta}{2}  \bigg) - \sin^2 \bigg( \frac{\theta}{2} \bigg) \bigg| = \bigg| \bigg( \sin \bigg( \frac{\theta + \Delta \theta}{2} \bigg) + \sin \bigg( \frac{\theta}{2} \bigg) \bigg) \bigg( \sin \bigg( \frac{\theta + \Delta \theta}{2} \bigg) - \sin \bigg( \frac{\theta}{2} \bigg) \bigg) \bigg|
+\end{equation*}
+
+But we know that:
+
+\begin{equation*}
+    \bigg|  \sin \bigg( \frac{\theta + \Delta \theta}{2} \bigg) + \sin \bigg( \frac{\theta}{2} \bigg) \bigg| \leq \frac{|\Delta \theta|}{2} \ \ \text{and} \ \ \bigg| \sin \bigg( \frac{\theta + \Delta \theta}{2} \bigg) \bigg| < \sin \bigg( \frac{\theta}{2} \bigg) + \frac{| \Delta \theta |}{2}
+\end{equation*}
+
+Then:
+
+\begin{equation*}
+\begin{split}
+    \frac{|\Delta M|}{2N}  & < \bigg( 2 \overbrace{\sin \bigg( \frac{\theta}{2} \bigg)}^{= \sqrt{M/2N}} + \overbrace{\frac{| \Delta \theta |}{2}}^{\leq 2^{-m - 1}} \bigg) \overbrace{\frac{| \Delta \theta |}{2}}^{\leq 2^{-m - 1}} \\
+    \frac{|\Delta M|}{2N}  & < \bigg( 2 \sqrt{\frac{M}{2N}} + \frac{1}{2^{m+1}} \bigg) \frac{1}{2^{m+1}}
+\end{split}
+\end{equation*}
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \label{Eq: Quantum Counting M deviation}
+    \frac{|\Delta M|}{2N}  < \bigg( 2 \sqrt{2MN} + N 2^{-(m+1)} \bigg) 2^{-m}
+\end{empheq}
+
+As an example, we choose $m = \big\lceil \frac{n}{2} + 1 \big\rceil$ and $\epsilon = \frac{1}{6}$. Then it follows that $t = \big\lceil \frac{n}{2} \big\rceil + 3$, se we will need $\Omega ( \sqrt{N})$ iterations and  oracle calls. Our accuracy is $|\Delta M | < \sqrt{\frac{M}{2}} + \frac{1}{4} = O(\sqrt{M)}$.
+
+This example works also to show if there is a solution on N items, that is wheter $M=0$ or $M \not= 0$. If $M=0$ we will have $| \Delta M | < \frac{1}{4}$, so the algorithm must produce the estimate within probability at least $\frac{5}{6}$. Conversely, if $M \not= 0$ then it is easy to verify that the estimate for $M$ is not equal to $0$ at least $\frac{5}{6}$ times.
+
+Another application is to find a solution to the search problem where $M$ is unknown because it is needed to know $M$ in order to known how many grover iterations are needed for the Grover algorithm. Then we first estimate $\theta$ and $M$ with high accuracy using phase estimation and then use Grover's algorithm using $M$ to know $R$. The angular error is at most $\frac{\pi}{4} \bigg( 1 + \frac{|\Delta \theta |}{\theta} \bigg)$ so choosing $m = \lceil n/2 \rceil + 1$ gives an angular error of at least $\frac{\pi}{4} \frac{3}{2}$ this corresponds to a probability of at least $\cos^2 \big( \frac{3 \pi}{8} \big) \approx 0.15$ for the search algorithm. If the probability is just as the former case of $\frac{5}{6}$, then the probability of obtaining a solution for the search problem is $\frac{5}{6} \cos^2 \big( \frac{3 \pi}{8} \big) \approx 0.12$ which can be boosted by the combined counting-search procedure.

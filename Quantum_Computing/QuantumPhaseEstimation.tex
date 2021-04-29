@@ -1,0 +1,141 @@
+\subsection{Quantum Phase Estimation}
+\label{subsec: QPE}
+
+Suppose a unitary operator U has an eigenvector $\ket{u}$ with value $e^{2\pi i \phi}$ (This happens, because all unitary operators have eigenvalues $v_i$ s.t $|v_i| = 1$). The goal of the algorithm is to estimate the phase $\phi$. To perform this, we assume oracles capable of preparing the state $\ket{u}$ and perform the controlled U operation. 
+
+For this algorithm we will use 2 registers, the first contains t qubits initially in the state $\ket{0}$. the number of qubits, t, is chosen depending on two factors:
+
+\begin{itemize}
+    \item[1)] Number of digits of accuracy for $\phi$;
+    \item[2)] With what probability we wish the phase estimation to be successful. 
+\end{itemize}
+
+The second register begins in the state $\ket{u}$ and contains as many qubits as necessary to store $\ket{u}$, that is $\dim(U)/2$. We apply the following circuit:
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+      \lstick[wires=3]{$t$}& \lstick{$\ket{0}$} & \gate[wires=3]{H^{\otimes n}}  & \qw & \qw & \qw & \ & \ & \ctrl{3} & \gate[wires=3]{FT^{\dagger}} & \meter{} \\
+    & \lstick{$\ket{0}$} &  & \qw & \ctrl{2} & \qw & \  \dots \ & \ & \qw & & \meter{}  \\
+    & \lstick{$\ket{0}$} &  & \ctrl{1} & \qw & \qw & \  & \ & \qw & & \meter{} \\
+    \lstick[wires=2]{$\ket{u}$}&  & \qw & \gate[wires=2]{U^{2^0}} & \gate[wires=2]{U^{2^1}} & \qw & \ \dots &  & \gate[wires=2]{U^{2^{t-1}}} & \qw \\
+    &  & \qw & &  & \qw & \  \dots &  & & \qw \\
+    \end{quantikz}
+    \caption{Circuit of the Quantum Phase Estimation.}
+    \label{fig: QPE}
+\end{figure}
+
+Then we have: 
+
+\begin{equation}
+    \frac{1}{2^{t/2}} \bigg(\ket{0} + e^{2 \pi i (2^{t-1} \phi} \ket{1} \bigg) \dots \bigg(\ket{0} + e^{2 \pi i (2^{0} \phi} \ket{1} \bigg) = \frac{1}{2^{t/2}} \sum_{k=0}^{2^t - 1} e^{2 \pi i \phi k} \ket{k}
+\end{equation}
+
+Which is in the Fourier Basis, so the second stage of the algorithm is to return to the computational basis using the inverse of the Fourier Transform. Then the 3rd and final stage is to read out the first register by doing a measurement on the computational basis.
+
+Then the Quantum Phase Estimation circuit is the following:
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+        \lstick{\ket{0}}  & \qw \qwbundle{n} &  \gate{H} & \ctrl{1} & \gate{FT^\dagger} & \meter{}\\
+        \lstick{\ket{u}}  & \qw \qwbundle{m} & \qw & \gate{U^j} & \qw & \qw  \rstick{\ket{u}}
+    \end{quantikz}
+    \caption{Full circuit of the Quantum Phase Estimation.}
+    \label{fig: QPE full}
+\end{figure}
+
+To understand better how it works, suppose $\phi$ may be expressed exactly by t bits, $\phi = 0.\phi_1 \phi_2 \dots \phi_t$, then before the Fourier transform inverse, we have:
+
+\begin{equation}
+    \frac{1}{2^{t/2}} \bigg[ \ket{0} + e^{2 \pi i 0.\phi_1} \bigg] \dots \bigg[ \ket{0} + e^{2 \pi i 0.\phi_1 \phi_2 \dots \phi_t} \bigg]
+\end{equation}
+
+Then we apply the Fourier transform, thus we get exactly $\ket{\phi_1 \phi_2 \dots \phi_t}$! Then:
+
+\begin{equation}
+    \frac{1}{2^{t/2}} \sum_{j=0}^{2^t - 1} e^{2 \pi i \phi j} \ket{j} \ket{u} \xrightarrow{FT^{\dagger}} \ket{\phi_1 \phi_2 \dots \phi_t} \ket{u}
+\end{equation}
+
+\subsubsection{Performance and Requirements}
+\label{Subsubsec: Performance and Requirements QPE}
+
+Let b be the integer in the range $0$ to $2^{t} - 1$ s.t. $\frac{b}{2^t} = 0. b_1 \dots b_t$ is the best t bit approximation to $\phi$ which is less than $\phi$. The difference $\delta \equiv \phi - \frac{b}{2^t}$ between $\phi$ and $\frac{b}{2^t}$ satisfies $0 \leq \delta \leq 2^{-t}$. We aim to show that at the end of the phase estimation procedure we get a result which is close to b, and this enable us to estimate $\phi$ accurately, with high probability. After the $FT^{\dagger}$:
+\begin{equation}
+    \ket{\psi} = \frac{1}{2^t} \sum_{k,l = 0}^{2^t - 1} e^{- \frac{2 \pi i k l}{2^t}} e^{2\pi i \phi k} \ket{l}
+\end{equation}
+
+Let $\alpha_t$ be the amplitude of $\ket{(b+l) \mod 2^t}$:
+
+\begin{equation}
+\ket{\alpha_t} \equiv \ip{(b+l) mod 2^t}{\psi} = \frac{1}{2^t} \sum_{k=0}^{2^t - 1} \bigg[ e^{2\pi i (\phi - \frac{b+l}{2^t}} \bigg]^k 
+\end{equation}
+
+Using the geometric series $\sum_{k=0}^n x^k = \frac{1 - x^n}{1 - x}$, we have that:
+
+\begin{equation}
+    \alpha_t = \frac{1}{2^t} \bigg[ \frac{1 - e^{2 \pi i ( 2^t \phi - (b+l)}}{1 - e^{2 \pi i ( \phi - \frac{b+l}{2^t}}} \bigg] = \frac{1}{2^t} \bigg[ \frac{1 - e^{2 \pi i ( 2^\delta - l)}}{1 - e^{2 \pi i ( \delta - \frac{l}{2^t}}} \bigg]
+\end{equation}
+
+Suppose that the outcome of the measurement is m. We aim to bound the probability of obtaining a value of m such that $| m - b| > e$, where e is a positive integer characterizing our desired tolarance error. The probability of observing such m is given by:
+
+\begin{equation}
+    \label{Eq: prob err}
+    p(|m-b| > e) = \sum_{-2^{t-1} < l \leq -(e+1)} |\alpha_l|^2 + \sum_{e+1 < l \leq 2^t} |\alpha_l|^2
+\end{equation}
+
+For any $\theta \in \mathbb{R}$, $|1 - e^{i\theta}| \leq 2$, so:
+\begin{equation}
+    |\alpha_l| \leq \frac{2}{2^t | 1 - e^{2 \pi i ( \delta - \frac{l}{2^t}}}
+\end{equation}
+
+We also have that $|1 - e^{i\theta}| \geq \frac{2 |\theta|}{\pi}$, whenever $\theta \in [-\pi,\pi]$. But when $-2^{t-1} < l \leq 2^{t-1}$ we have that $-\pi \leq 2\pi (\delta - \frac{l}{2^t}) \leq \pi$, thus:
+
+\begin{equation}
+    |\alpha_t| \leq \frac{1}{2^{t+1}(\delta - \frac{l}{2^t})}
+\end{equation}
+
+Applying this on \ref{Eq: prob err}:
+
+\begin{equation}
+    p(|m - b| > e) \leq \frac{1}{4} \bigg[ \sum_{l=-2^{t-1} + 1}^{-(e+1)} \frac{1}{(l - 2^t \delta)^2} + \sum_{l=e+1}^{2^{t-1}} \frac{1}{(l - 2^t \delta)^2} \bigg]
+\end{equation}
+
+By definition $0 \leq 2^t \delta \leq 1$, we have:
+
+\begin{equation}
+    \begin{split}
+    p(|m - b| > e) \leq & \frac{1}{4} \bigg[\sum_{l=-2^{t-1} + 1}^{-(e+1)} \frac{1}{l^2} + \sum_{l=e+1}^{2^{t-1}} \frac{1}{(l-1)^2}  \bigg] \\
+    \leq & \frac{1}{2} \sum_{l=e}^{2^{t-1} - 1} \frac{1}{l^2} \\
+    \leq & \frac{1}{2} \int_{e-1}^{2^{t-1}-1} \frac{dl}{l^2} = \frac{1}{2(e-1)}
+    \end{split}
+\end{equation}
+
+Suppose we wish to approximate $\phi$ to an accuracy $2^{-n}$, that is, we choose $e = 2^{t-n} - 1$. By making use of $t = n+p$ in the phase estimation, then the probability of obtaining an approximation correct to this accuracy is:
+
+\begin{equation}
+    p(|m-b|>e) \leq \frac{1}{2(2^{t-n} - 2)} = \frac{1}{2(2^p - 2)}
+\end{equation}
+
+Thus to obtain $\phi$ with accuracy of n bits with probability of success at least $1 - \epsilon$, we choose:
+
+\begin{equation}
+    \begin{split}
+    \epsilon = \frac{1}{2(2^p - 2)} \Rightarrow 2^p = 2 + \frac{1}{2\epsilon} \\
+    p = \log \bigg( 2 + \frac{1}{2\epsilon} \bigg)
+    \end{split}
+\end{equation}
+
+Therefore we can choose t according to our desired probability:
+
+\begin{equation}
+    \label{Eq: QPE probability}
+    t = n + \log \bigg( 2 + \frac{1}{2\epsilon} \bigg)
+\end{equation}
+
+It is important to point that it is not needed necessarily to initialize the ancilla into the eigenvector of the unitary matrix for the QPE. Let's suppose $\ket{\psi} = \sum_u c_u \ket{u}$ and the eigenstate $\ket{u}$ has eigenvalues $e^{2 \pi i \phi_u}$. Then:
+
+\begin{equation}
+    \mathrm{QPE} \ket{0}\ket{\psi} = \sum_u c_u \ket{\phi_u} \ket{u}
+\end{equation}
+
+This work because the QPE is linear, so you get the QPE for each eigenvector $\ket{u}$. In this case, reading the first register we have a good approximation to $\phi_u$, where u is chosen at random with probability $|c_u|^2$.

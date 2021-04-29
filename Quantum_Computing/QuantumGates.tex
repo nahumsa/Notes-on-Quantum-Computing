@@ -1,0 +1,192 @@
+\subsection{Quantum Gates}
+\label{subsec: Quantum Gates}
+
+\subsubsection{One Qubit Gates}
+\label{Subsubsec: One Qubit Gates}
+
+\paragraph{}Since everything must be done in the realm of Quantum Mechanics the one qubit gates should be unitary 2x2 matrices, following the 2nd postulate.
+
+The first gate is the \textit{Hadamard Gate}, defined as the matrix:
+
+\begin{equation}
+    H = \frac{1}{\sqrt{2}} \begin{pmatrix}
+    1 & 1 \\
+    1 & -1
+    \end{pmatrix}
+\end{equation}
+
+This gate changes the computational basis $\{0,1 \}$ (Z basis) to a new basis: $\{ +,- \}$ (X basis).
+
+\begin{equation}
+    \begin{split}
+        H \ket{0} = \frac{1}{\sqrt{2}} \big( \ket{0} + \ket{1} \big)  \equiv \ket{+} \\
+        H \ket{0} = \frac{1}{\sqrt{2}} \big( \ket{0} - \ket{1} \big)  \equiv \ket{-}
+    \end{split}
+\end{equation}
+
+Another important property of the Hadamard gate is that $H^2 = \mathds{1}$, so the inverse transformation is the Hadamard gate itself, $H^{\dagger} = H$.
+
+The next gate is the \textit{Phase Shift Gate}:
+
+\begin{equation}
+R_z (\delta) = \begin{pmatrix}
+1 & 0 \\
+0 & e^{i \delta}
+\end{pmatrix}
+\end{equation}
+
+This gate adds a phase only if the state is $\ket{1}$, Therefore for a general state $\ket{\psi} = \alpha \ket{0} + \beta \ket{1}$ with $|\alpha|^2 + |\beta|^2 = 1$:
+
+\begin{equation}
+    R_z (\delta) \ket{\psi} =  \alpha \ket{0} + e^{i \delta} \beta \ket{1}
+\end{equation}
+
+Since this is a relative phase, it is observed when you measure on the Z basis.
+
+It is important to notice that every single qubit unitary operation can be made by only Phase Shift and Hadamard Gates:
+
+For instance:
+
+\begin{equation}
+    R_z (\frac{\pi}{2} + \phi) H R_z(\theta) H \ket{0} = e^{i \frac{\theta}{2}} \big( cos\frac{\theta}{2} \ket{0} + e^{i\phi} \ket{1} \big)
+\end{equation}
+
+Let's show this:
+
+\begin{equation}
+\begin{split}
+    R_z (\frac{\pi}{2} + \phi) H R_z(\theta) H \ket{0}  = & R_z (\frac{\pi}{2} + \phi) H R_z(\theta) \frac{1}{\sqrt{2}} \big( \ket{0} + \ket{1} \big) \\
+    = & R_z  (\frac{\pi}{2} + \phi) H \frac{1}{\sqrt{2}} \big( \ket{0} + e^{i \theta} \ket{1} \big) \\
+    = & R_z  (\frac{\pi}{2} + \phi) \frac{1}{2} \big( (\ket{0} + \ket{1}) + e^{i \theta} (\ket{0} - \ket{1}) \big) \\
+    = & R_z  (\frac{\pi}{2} + \phi) e^{i \frac{\theta}{2}}\big( cos\frac{\theta}{2}\ket{0} - i sin \frac{\theta}{2}\ket{1}) \big) \\
+    = & e^{i \frac{\theta}{2}}\big( cos\frac{\theta}{2}\ket{0} - e^{i\frac{\pi}{2}} e^{i\phi} i sin \frac{\theta}{2}\ket{1}) \big) \\
+    = & e^{i \frac{\theta}{2}}\big( cos\frac{\theta}{2}\ket{0} + e^{i\phi} sin \frac{\theta}{2}\ket{1}) \big)
+\end{split}
+\end{equation}
+
+The most general class of 1 qubit unitary transformation are the rotations of the Bloch Sphere. Consider an operator $\mathcal{O}$ such that $\mathcal{O}^2 = \mathds{1}$ and the Taylor expansion of the following operator:
+
+\begin{equation}
+    e^{-i\alpha \mathcal{O}} = \bigg[ 1 - \frac{1}{2!} \alpha^2 + \dots \bigg] \mathds{1} - i \bigg[ \alpha - \frac{1}{3!} \alpha^3 + \dots \bigg] \mathcal{O} = cos \ \alpha \ \mathds{1} - i sin \ \alpha \ \mathcal{O}
+\end{equation}
+
+So if you want to rotate counter clockwise about the Z direction, we use the Pauli Z matrix: 
+
+\begin{equation}
+    e^{-i \frac{\delta}{2}Z} = cos \ \frac{\delta}{2} \ \mathds{1} - i sin \ \frac{\delta}{2} \ Z = e^{-i \frac{\delta}{2}} \begin{pmatrix}
+    1 & 0 \\
+    0 & e^{i \delta}
+    \end{pmatrix} \equiv R_z (\delta)
+\end{equation}
+
+This is the same definition given above for the phase shift gate with a global phase that can be ignored because it is of no physical significance.
+
+If you want to rotate counter clockwise about the X direction, we use the Pauli X matrix: 
+
+\begin{equation}
+    e^{-i \frac{\delta}{2}X} \equiv R_x (\delta)
+\end{equation}
+
+If you want to rotate counter clockwise about the Y direction, we use the Pauli Y matrix: 
+
+\begin{equation}
+    e^{-i \frac{\delta}{2}Y} \equiv R_y (\delta)
+\end{equation}
+
+A rotation counter clockwise about an arbitrary direction can be done combining rotations about X,Y and Z axis:
+
+\begin{equation}
+    R_n(\epsilon) \approx R_x(n_x\epsilon)R_y(n_y\epsilon)R_z(n_z\epsilon)
+\end{equation}
+
+The taylor expansion gives: 
+
+\begin{equation}
+    R_n(\epsilon) \approx \mathds{1} - i \frac{\epsilon}{2} (\mathbf{n}\cdot \mathbf{\sigma})
+\end{equation}
+
+Then we have that:
+
+\begin{equation}
+    R_n(\delta) = cos \ \frac{\delta}{2} \ \mathds{1} - i sin \ \frac{\delta}{2} \ (\mathbf{n}\cdot \mathbf{\sigma})
+\end{equation}
+We can see that the Hadamard gate written in terms of rotations is written with $\delta = \pi$ and $\Tilde{n} = (\frac{1}{\sqrt{2}},0,\frac{1}{\sqrt{2}})$:
+
+\begin{equation}
+    H = \frac{1}{\sqrt{2}} ( Z + X )
+\end{equation}
+
+This transformation rotates the X-axis to Z and vice versa.
+
+\subsubsection{Two Qubit Gates}
+\label{Subsubsec: Two Qubit Gates}
+
+\paragraph{}The most important two qubit gate is the Controled-NOT(C-NOT) gate. The \textit{C-NOT} is a generalization of a XOR classic gate: 
+
+\begin{equation}
+    CNOT \ket{A}\ket{B} = \ket{A}\ket{B \oplus A}
+\end{equation}
+
+This gate is responsible for entanglement in Circuit Quantum Computing. It is easy to show that using this gate we can construct an entangled state given by the following circuit:
+
+\begin{center}
+\begin{quantikz}
+\lstick{\ket{0}}  &  \gate{H} & \ctrl{1} & \qw \\
+\lstick{\ket{0}}  &  \qw & \targ{} & \qw 
+\end{quantikz}
+\end{center}
+
+In the first part we have:
+
+\begin{equation}
+    \ket{\psi_0} = \ket{00}
+\end{equation}
+
+After the Hadamard gate on the first qubit:
+
+\begin{equation}
+    \ket{\psi_1} = H \otimes \mathds{1} \ket{\psi_0} = \frac{1}{\sqrt{2}} \big( \ket{0} + \ket{1} \big) \otimes \ket{0}
+\end{equation}
+
+Applying the CNOT gate:
+
+\begin{equation}
+    \ket{\psi_2} = \mathrm{CNOT}\ket{\psi_1} = \frac{1}{\sqrt{2}} \big( \ket{0} \otimes \ket{0 \oplus 0} + \ket{1} \otimes \ket{0 \oplus 1} \big) = \frac{1}{\sqrt{2}} \big( \ket{00} + \ket{11} \big)
+\end{equation}
+
+So, using the CNOT gate we have just created an entangled state also known as one of the bell states.
+
+\subsubsection{Universality of Quantum Gates}
+\label{Subsubsec: Universality of Quantum Gates}
+The goal is to choose from a finite set of gates so that, by constructing a circuit choosing from this set only we can implement non-trivial and interesting (quantum) computations.
+
+When we use a circuit of quantum gates to implement some desired unitary, it suffices to have an implementation that approximates the desired unitary to some specific level of accuracy. Suppose we approximate a desired unitary U by a unitary V. The error is defined to be:
+
+\begin{equation}
+    \label{Eq: Unitary Error}
+    E(U,V) = \max_{\ket{\phi}} || (U-V)\ket{\phi}||
+\end{equation}
+Where $||\ket{\phi}|| = \sqrt{\ip{\phi}{\phi}}$.
+
+\begin{theorem}
+$E(U_2U_1, V_2V_1) \leq E(U_2,V_2) + E(U_1,V_1)$
+\end{theorem}
+
+\begin{proof}
+\begin{equation}
+    \begin{split}
+        E(U_2U_1, V_2V_1) & = || (U_2U_1 - V_2V_1) \ket{\phi}|| \\
+        &  = || (U_2U_1 - V_2U_1) \ket{\phi} + (V_2U_1 - V_2V_1) \ket{\phi}||
+    \end{split}
+\end{equation}
+
+Using that $|| \ket{a} + \ket{b} || \leq || \ket{a} || + || \ket{b} ||$:
+
+\begin{equation}
+    \begin{split}
+        E(U_2U_1, V_2V_1) & \leq || (U_2U_1 - V_2U_1) \ket{\phi} || + ||(V_2U_1 - V_2V_1) \ket{\phi}|| \\
+        & = E(U_2,V_2) + E(U_1,V_1)
+    \end{split}
+\end{equation}
+\qedsymbol
+\end{proof}

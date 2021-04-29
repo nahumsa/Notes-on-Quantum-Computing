@@ -1,0 +1,107 @@
+\subsection{Quantum Measures}
+\label{Subsection: Quantum Measures}
+
+\subsubsection{Trace Distance}
+\label{Subsubsec: Trace distance}
+
+Trace distance can be interpreted as the probability of distinguishing between two density matrices. It is defined as the Schatten Norm for p=1:
+
+\begin{equation}
+    T(\rho,\sigma) = \frac{1}{2} || \rho - \sigma ||_1 = \frac{1}{2} \mathrm{Tr} \bigg[\sqrt{(\rho - \sigma)^{\dagger} (\rho - \sigma)} \bigg]
+\end{equation}
+
+Since density matrices are Hermitian, we have that:
+
+\begin{equation}
+    T(\rho, \sigma) = \frac{1}{2} \mathrm{Tr} \bigg[\sqrt{(\rho - \sigma)^2} \bigg] = \frac{1}{2} \sum_i \lambda_i
+\end{equation}
+
+Where $\lambda_i$ are the eigenvalues of ($\rho - \sigma$).
+
+Properties \cite{nielsen_chuang_2010}:
+\begin{itemize}
+    \item Is a metric on the space of density matrices. 
+    \item $0 \leq T(\rho, \sigma) \leq 1$ and $T(\rho,\sigma) = 1$ iff $\rho$ and $\sigma$ are orthogonal.
+    \item It is Preserved under unitary transformations: $T(U\rho U^\dagger,U\sigma U^\dagger) = T(\rho, \sigma)$.
+    \item It is convex in each of its inputs. $T(\rho,\sum_i p_i \sigma_i) \leq \sum_i p_i T(\rho,\sigma_i)$.
+\end{itemize}
+
+\subsubsection{Von Neumann Entropy}
+\label{Subsubsec: Von Neumann entropy}
+
+Von Neumann entropy of quantum state $\rho$ is defined as:
+
+\begin{equation}
+    S(\rho) \equiv - \mathrm{Tr}(\rho \mathrm{log} \rho)
+\end{equation}
+
+If $\lambda_x$ are the eigenvalues of $\rho$, then von Neumann's entropy definition can be re-expressed as:
+
+\begin{equation}
+    S(\rho) = - \sum_x \lambda_x \mathrm{log} \lambda_x
+\end{equation}
+
+And we define $0\mathrm{log}0 \equiv 0$.
+
+\subsubsection{Quantum relative entropy}
+\label{Subsubsec: Quantum Relative entropy}
+
+The Von Neumann Entropy of a density matrix is $S(\rho) = - \mathrm{Tr} \ \rho \ \mathrm{log}\rho$, then we can define the quantum relative entropy between two density matrices $\rho$ and $\sigma$ as \cite{vedral2002role}, \cite{nielsen_chuang_2010}:
+
+\begin{equation}
+    S(\rho || \sigma) = - \mathrm{Tr} \big[ \rho \ \mathrm{log}\sigma \big] - S(\rho) = \mathrm{Tr} \big[ \ \rho \ \mathrm{log}\rho \big] - \mathrm{Tr} \big[ \ \rho \ \mathrm{log}\sigma \big] = \mathrm{Tr} \big[\ \rho ( \ \mathrm{log}\rho - \ \mathrm{log}\sigma) \big]
+\end{equation}
+
+This can be used as an entanglement measurement, consider a composite finite Hilbert space $H = \bigotimes_k H_k$, the relative entropy of entanglement of $\rho$ is defined by:
+
+\begin{equation}
+    D_{\mathrm{REE}}(\rho) = \min_{\sigma} S(\rho || \sigma)
+\end{equation}
+The minimum is taken over the family of separable states ($\rho = \sum_{i,j} p_{ij} \sigma_i \otimes \sigma_j$). We can intepret this as the quantity of distinguishability of the state $\rho$ from separable states. When $D_{REE} = 0$ we have a separable state, because of Klein's inequality.
+
+\begin{theorem}[Klein's Inequality]
+
+\begin{equation}
+    S(\rho || \sigma) \geq 0 \ \mathrm{and} \ S(\rho || \sigma) = 0 \iff \rho = \sigma
+\end{equation} 
+\end{theorem}
+\begin{proof}{\cite{nielsen_chuang_2010}}
+Let $\rho = \sum_i p_i \op{i}{i}$ and $\sigma = \sum_j q_j \op{j}{j}$ be the orthonormal compositions for $\rho$ and $\sigma$.
+From the definition, we have that:
+
+\begin{equation}
+    S(\rho||\sigma) = \sum_i p_i \mathrm{log} p_i - \sum_i \bra{i}\rho \mathrm{log}\sigma \ket{i}
+\end{equation}
+Let's simplify $\bra{i}\rho \mathrm{log}\sigma \ket{i}$:
+\begin{equation}
+    \bra{i}\rho \mathrm{log}\sigma \ket{i} = \bra{i}\bigg( \sum_j \mathrm{log}(q_j) \op{j}{j} \bigg)\ket{i} = \sum_i \mathrm{log}(q_j) P_{ij}
+\end{equation}
+Therefore, for the relative entropy, we have:
+
+\begin{equation}
+    S(\rho||\sigma) = \sum_i p_i \mathrm{log} p_i - \sum_i \sum_j p_i \mathrm{log}(q_j) P_{ij} = \sum_i p_i \bigg( \mathrm{log} (p_i) - \sum_j \mathrm{log}(q_j) P_{ij} \bigg)
+\end{equation}
+Note that the matrix $P_{ij}$ has double stochasticity ( $\sum_i P_{ij} = 1$ and $\sum_j P_{ij} = 1$ ) and $P_{ij} \geq 0$. Because log is a strictly concave function we have that $\sum_j P_{ij} \mathrm{log}(q_j) \leq log(r_i)$, where $r_i \equiv \sum_j P_{ij} q_j$ with equality iff $\exists j : P_{ij} =1$. Therefore:
+
+\begin{equation}
+    S(\rho||\sigma) \geq \sum_i p_i \mathrm{log} \frac{p_i}{r_i}
+\end{equation}
+With the equality iff for each $i$ there exists an $j$ such that $P_{ij} = 1$, that is iff $P_{ij}$ is a permutation matrix. This has the same form of the classical relative entropy, we have that:
+
+\begin{equation}
+    S(\rho||\sigma) \geq 0
+\end{equation}
+
+With equality iff $p_i = r_i \ \forall i$ and $P_{ij}$ is a permutation matrix. For this condition we can relabel the eigenstates of $\sigma$ such that $P_{ij}$ becomes the identity matrix, therefore $\rho$ and $\sigma$ are diagonal on the same basis and have the same eigenvalues, thus $\rho = \sigma$ iff $S(\rho||\sigma) = 0$. \qedsymbol
+\end{proof}
+
+
+\subsubsection{Quantum mutual information}
+\label{Subsubsec: Quantum mutual information}
+
+Consider a bipartite quantum system $H_{AB} = H_A \otimes H_B$ and let $\rho_{AB} \in \mathcal{L}(H_{AB})$. As defined on section~\ref{Subsubsec: Quantum Relative entropy}, the Von Neumann Entropy is $S(\rho) = - \mathrm{Tr} \ \rho \ \mathrm{log}\rho$. The reduced state of $\rho_{AB}$ on a subsystem $A$ is given by the partial trace: $\rho^A = \mathrm{Tr}_B \rho_{AB}$. The reduced Von Neumann Entropy is given by $S(\rho^A)$. Now the Quantum mutual informatin is defined is:
+
+\begin{equation}
+    I(A:B) = S(\rho^A) + S(\rho^B) - S(\rho^{AB}) = S(\rho^{AB} || \rho^A \otimes \rho^B)
+\end{equation}
+Where $S(\cdot || \cdot)$ is the quantum relative entropy (Sec~\ref{Subsubsec: Quantum Relative entropy}).

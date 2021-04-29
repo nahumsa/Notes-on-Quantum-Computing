@@ -1,0 +1,26 @@
+\section{Quantum Information}
+\label{Sec: Quantum Information}
+
+\paragraph{}This will be a short introduction on quantum information in order to have a theoretical basis to understand most Quantum Algorithms.
+\subsection{Postulates of Quantum Mechanics}
+\label{Subsec: Postulates of Quantum Mechanics}
+\paragraph{}As stated in Aaronson \cite{Aaronson:2013:QCD:2487754}, there are two ways of introducing quantum mechanics: The physicist's way explaining the history behind the discovery of quantum theory and stating postulates of quantum theory as an endpoint, or showing that quantum mechanics is a generalization of probability theory. Here I will take the physicist's position and skip the history stuff and introduce the postulates of quantum theory.
+
+The quantum mechanics postulates are, according to Nielsen and Chuang \cite{nielsen_chuang_2010}: 
+\begin{enumerate}
+    \item Associated to any isolated physical system is a complex vector space with inner product (that is, a Hilbert space) known as the state space of the system. The system is completely described by its state vector, which is a unit vector in the system’s state space.
+    \item The evolution of a closed quantum system is described by a unitary transformation. That is, the state \ket{\psi} of the system at time $t_1$ is related to the state \ket{\psi}  of the system at time $t_2$ by a unitary operator U which depends only on the times $t_1$ and $t_2$ , $\ket{\psi(t_2)} = U \ket{\psi(t_1)}$.
+    \item Quantum measurements are described by a collection of POVMs $\{M_m\}$ of measurement operators. These are operators acting on the state space of the system being measured. The index m refers to the measurement outcomes  that  may occur in the experiment. If the state of the quantum system is \ket{\psi} immediately before the measurement then the probability that result m occurs  is given by:
+    \begin{equation}
+        p(m) = \bra{\psi} M_m^{\dagger} M_m \ket{\psi}
+    \end{equation}
+    And the system after the measurement is:
+    \begin{equation}
+        \frac{M_m \ket{\psi}}{\bra{\psi} M_m^{\dagger} M_m \ket{\psi}}
+    \end{equation}
+    Where $\sum_m M_m^{\dagger} M_m = \mathbb{I}$.
+    
+    \item The state space of a composite physical system is the tensor product of the state spaces of the component physical systems. Moreover, if we have systems numbered 1 through n: $\ket{\psi} = \ket{\psi_1} \otimes \ket{\psi_2} \dots \ket{\psi_n}$
+\end{enumerate}
+
+To sum up, the first postulate states that wave functions lives in Hilbert Space, the second one states that evolutions are unitary, the third one states that the wavefunction collapses when it's measured (For a good Everretian this might seems strange) and the final one states that composite systems are described by tensor products.

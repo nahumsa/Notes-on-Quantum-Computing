@@ -1,0 +1,92 @@
+\subsection{Quantum Fourier Transform}
+\label{subsec: QFT}
+
+Fourier transform is a very important tool to signal processing. Here we will build a quantum version of a Discrete Fourier Transform that will be used in many quantum algorithms.
+
+\subsubsection{Discrete Fourier Transform}
+\label{Subsubsec: DFT}
+
+Discrete fourier transform is the map between two strings $F: (x_0, x_1, \dots, x_{N-1}) \rightarrow ((y_0, y_1, \dots, y_{N-1}))$.
+
+\begin{equation}
+F(x_k) = y_k = \frac{1}{\sqrt N} \sum_{l=0}^{N-1} x_l \omega_N^{lk}
+\end{equation}
+
+Where: $\omega_N^{lk} =  exp\left(2\pi i \frac{lk}{N}\right)$
+
+\subsubsection{Quantum Fourier Transform}
+\label{Subsubsec: QFT}
+Quantum Fourier transform does the same thing, but using quantum states: $F:\sum_{i=0}^{N-1} x_i\left| i \right> \rightarrow \sum_{i=0}^{N-1} y_i\left| i \right> $
+
+\begin{equation}
+F(x_k) = y_k = \frac{1}{\sqrt N} \sum_{l=0}^{N-1} x_l \omega_N^{lk}
+\end{equation}
+
+Where: $\omega_N^{lk} =  exp\left(2\pi i \frac{lk}{N}\right)$
+
+This can be represented by an unitary matrix:
+\begin{equation}
+F = \frac{1}{\sqrt N} \sum_{x=0}^{N-1}\sum_{y=0}^{N-1} \omega_N^{lk}  \left| y \right> \left< x \right|
+\end{equation}
+To find the circuit representation of the Fourier transform we need to see how it works on $2^N$ qubits first:
+
+\begin{equation}
+\begin{split}
+F\left(\left| m \right> _n\right) & = \frac{1}{\sqrt N} \sum_{k=0}^{N-1} \omega_N^{km} \left| k \right>_n \\
+  & =  \frac{1}{\sqrt N} \sum_{k=0}^{N-1} exp\left( i \frac{2\pi}{N} mk \right) \left| k \right>_n  \\
+  & =  \frac{1}{\sqrt N} \sum_{k_{n-1}=0}^{1} \dots \sum_{k_{0}=0}^{1} exp\left( i \frac{2\pi}{N} m \sum_{l=1}^n \frac{k_{n-l}}{2^l} \right) \left| k_{n-1} \dots k_0 \right>_n  \\
+  & =  \frac{1}{\sqrt N} \sum_{k_{n-1}=0}^{1} \dots \sum_{k_{0}=0}^{1} \bigotimes_{l=1}^n exp\left( i \frac{2\pi}{N} m  \frac{k_{n-l}}{2^l} \right) \left| k_{n-l}\right>_n \\ 
+  & =  \frac{1}{\sqrt N} \bigotimes_{l=1}^n \left[ \left| 0 \right> + exp\left( i \frac{2\pi m}{2^l} \right) \left| 1\right> \right]
+\end{split}
+\end{equation}
+Now we use the binary representation of $\frac{m}{2^l}$: 
+\begin{equation}
+\begin{split}
+\frac{m}{2^l} & = \sum_{p=1}^n m_{n-p} 2^{n-p-l}  = m_{n-1} 2^{n-1-l} + \dots + m_l 2^0 + \dots + m_0 2^{-l}  \equiv m_{n-1} \dots m_l . m_{l-1} \dots m_0 \\
+ & = \sum_{p=1}^{n-l} m_{n-p} 2^{n-p-l} + \sum_{p=1}^{l} \frac{m_{l-p}}{2^l}  
+\end{split}
+\end{equation}
+
+Therefore:
+
+\begin{equation}
+	exp\left[ i \frac{2 \pi m}{2^l} \right] = exp\left[ i 2 \pi \sum_{p=1}^{n-l} m_{n-p} 2^{n-p-l} \right] exp\left[i 2 \pi  \sum_{p=1}^{l} \frac{m_{l-p}}{2^l} \right] = exp\left[i 2 \pi  \sum_{p=1}^{l} \frac{m_{l-p}}{2^l} \right]
+\end{equation}
+Now, we have that:
+\begin{equation}
+F(\left| m\right>_n) = \frac{1}{\sqrt{N}} \bigotimes_{l=1}^n \left[ \left| 0 \right> +exp\left[i 2 \pi  \sum_{p=1}^{l} \frac{m_{l-p}}{2^l} \right] \left| 1\right> \right]
+\end{equation}
+
+Consider first acting on 2 qubits(n=2):
+
+\begin{equation}
+\begin{split}
+F(\left| m\right>_n) & =  \frac{1}{\sqrt{4}} \bigotimes_{l=1}^2 \left[ \left| 0 \right> +exp\left[i 2 \pi  \sum_{p=1}^{l} \frac{m_{l-p}}{2^l} \right] \left| 1\right> \right] \\
+ & = \frac{1}{2} \left[ \left| 0 \right> +exp\left[i 2 \pi  0.m_0 \right] \left| 1\right>\right] \otimes \left[ \left| 0 \right> +exp\left[i 2 \pi  0.m_1m_0 \right] \left| 1\right>\right]
+\end{split}
+\end{equation}
+
+Consider the following gate:
+
+\begin{equation}
+\begin{split}
+R_k^{(0,1)} \left| m \right> \left| 0 \right> & =   \left| 0 \right> \\
+R_k^{(0,1)} \left| m \right> \left| 1 \right> &  =  exp \left[ i 2 \pi \frac{m}{2^k} \right]   \left| 1 \right> 
+\end{split}
+\end{equation}
+
+We can write the QFT as: 
+
+\begin{equation}
+F = SWAP[H^{(0)} R_2^{(0,1)} H^{(1)} \left| m \right>_2]
+\end{equation}
+
+Where the SWAP gate changes the order of the qubits. This is represented by the following circuit:
+
+% \[ \Qcircuit @C=2em @R=1.2em {
+%      \lstick{\ket{m_0}}   & \qw & \ctrl{1} & \gate{H}   & \qswap & \qw \\
+%       \lstick{\ket{m_1}}  & \gate{H} & \gate{R_2}  & \qw & \qswap \qwx & \qw
+% }\]
+
+
+This can be easily generalized for n qubits.

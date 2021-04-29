@@ -1,0 +1,410 @@
+\subsection{Variational Quantum Eigensolver}
+\label{Subsec: Variational Quantum Eigensolver}
+
+Variational Quantum Eigensolver (VQE) is a hybrid Quantum/Classical algorithm that can be used to find the minimum of any objective function that we can express as a quantum circuit, that is unitary. This method was proposed by Peruzo et al.~\citep{peruzzo2014VQE} in 2013 and there's a good article explaining the use of VQE by Moll et al \citep{moll2018VQEReview}, the main idea of the algorithm is to find the minimum eigenvalue of a given matrix using the variational principle of quantum mechanics by calculating the expected values of Pauli strings of a Hamiltonian that can be written as a polynomial number of terms.
+
+In variational methods we start with an ansatz for the ground state (state associated with the minimum eigenvalue). We parametrized the initial ansatz by a set of parameters $\theta$, then we have our initial quantum state: $\ket{\psi(\theta)}$. We want to solve the following problem: 
+
+Given an Hamiltonian $\mathcal{H}$ we want to approximate the ground state energy by solving the following optimization problem:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \min_\theta \bra{\psi(\theta)} \mathcal{H} \ket{\psi(\theta)}
+\end{empheq}
+
+Using the variational principle, we have that:
+
+\begin{equation}
+    \lambda_\theta = \bra{\psi(\theta)} \mathcal{H} \ket{\psi(\theta)} \geq \lambda_{\min} = E_{gs}
+\end{equation}
+
+So by minimizing this value we get an approximation of the minimum eigenvalue of the Hamiltonian.
+
+\subsubsection{Variational Method}
+\label{Subsubsec: Variational Method}
+
+Consider the eigenvector $\ket{\psi_i}$ of a matrix $\mathcal{H}$ which is invariant under the transformation $\mathcal{H}$ up to a constant (the eigenvalue of $\ket{\psi_i}$). Therefore: $\mathcal{H}\ket{\psi_i} = \lambda_i \ket{\psi_i}$. 
+
+Now let's consider that the matrix $\mathcal{H}$ is Hermitian ($\mathcal{H} = \mathcal{H}^\dagger$), then all eigenvalues are real and $\mathcal{H}$ can be written as:
+
+\begin{equation*}
+    H = \sum_{i=1}^N \lambda_i \op{\psi_i}{\psi_i}
+\end{equation*}
+
+The expectation value of $\mathcal{H}$ on an arbitrary state $\ket{\psi}$ is given by:
+
+\begin{equation}
+    \label{Eq: Expectation Value Variational}
+    \expval{H}_\psi \equiv \bra{\psi} \mathcal{H} \ket{\psi}
+\end{equation}
+
+Thus we may write:
+
+\begin{equation*}
+\begin{split}
+    \expval{H}_\psi & = \bra{\psi} \mathcal{H} \ket{\psi} = \bra{\psi} \sum_{i=1}^N \lambda_i \op{\psi_i}{\psi_i} \ket{\psi} \\
+    & = \sum_{i=1}^N \lambda_i \ip{\psi}{\psi_i} \ip{\psi_i}{\psi} = \sum_{i=1}^N \lambda_i | \ip{\psi}{\psi_i} |^2
+\end{split}
+\end{equation*}
+
+This equation shows that the expectation value of an observable on any state can be written as a weighted sum of the eigenvalues associated with $\mathcal{H}$. Since $| \ip{\psi}{\psi_i} |^2 \geq 0$:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \lambda_{\min} \leq \expval{H}_\psi = \bra{\psi} \mathcal{H} \ket{\psi} = \sum_{i=1}^N \lambda_i | \ip{\psi}{\psi_i} |^2
+\end{empheq}
+
+Thus the expectation value of any wave function will always be at least the minimum eigenvalue associated with $\mathcal{H}$. This method thus is usually used to estimate the ground state of an Hamiltonian.
+
+\subsubsection{Algorithm}
+\label{Subsubsec: Algorithm}
+
+The algorithm consists in 4 steps, which will be explained in length in the following subsections:
+
+\begin{enumerate}
+    \item Construct a variational circuit with a desired ansatz, thus creating $\ket{\psi(\theta)}$.
+    \item Decompose the problem Hamiltonian into Pauli strings of polynomial size: $\mathcal{H} = \sum_\alpha h_\alpha P_\alpha$, where: $P_\alpha = \sigma^{\alpha_1} \otimes \dots \sigma^{\alpha_N}$.
+    \item Evaluate the problem Hamiltonian using the chosen ansatz: $\expval{H}(\theta) = \bra{\psi(\theta)} \mathcal{H} \ket{\psi(\theta)} = \sum_\alpha h_\alpha \bra{\psi(\theta)} P_\alpha \ket{\psi(\theta)}$
+    \item Using the value of the first step, minimize the expectation value with respect to the parameter $\theta$ using a classical optimizer.
+\end{enumerate}
+
+\subsubsection{Variational Forms}
+\label{Subsubsec: Variational Forms}
+
+It is needed to construct a quantum circuit for the ansatz, for this we will use parametrized quantum circuits with a fixed form which will help us to explore a part of the Hilbert space that (hopefully) is useful for our problem. Such a circuit is often called \textit{Variational Form} and is represented by the unitary operator $U(\theta)$. A variational form is applied to the initial state $\ket{\psi}$ and generates the output state: $U(\theta)\ket{\psi} = \ket{\psi(\theta)}$. We try to optimize this ansatz to yield $\bra{\psi(\theta)} \mathcal{H} \ket{\psi(\theta)} \approx E_{gs} = \lambda_{min}$. 
+
+A fixed variational form with a polynomial number of parameters (i.e. efficient quantum circuit) can only generate transformations on to a polynomially sized subspace of all the states in a exponentially sized Hilbert space. Thus we need to create variational forms depending on our problem at hand and the variational form has to satisfy two conflicting goals:
+
+\begin{itemize}
+    \item We want to generate any state $\ket{\psi} \in \mathbb{C}^{2^n}$.
+    \item We want to use as few parameters as possible and of polynomial size.
+\end{itemize}
+
+In order to see how this problem can conflict, let's consider the case for 1 qubit, thus we want to generate any state $\ket{\psi} \in \mathbb{C}^2$. This can be done by the U3 gate which takes exactly 3 parameters, up to a phase:
+
+\begin{equation*}
+    U3 (\theta, \phi, \lambda) = \begin{pmatrix}
+    \cos \frac{\theta}{2} & - e^{i\lambda} \sin \frac{\theta}{2} \\
+    e^{i\phi} \sin \frac{\theta}{2} & e^{i\lambda + i\phi} \cos \frac{\theta}{2}
+    \end{pmatrix}
+\end{equation*}
+
+Since this variational form can generate any state, the evaluation of the expected value of the Hamiltonian is limited only by the capabilities of the classical optimizer. This example illustrates that for only one qubit, we need 3 parameters to generate an arbitrary state, the problem of generating a arbitrary state is indeed NP-Hard and the number of parameters grows exponentially for the numbers of qubits, thus we need to restrain our state creation for sub-spaces that are polynomially generated. 
+
+Since we need variational forms that are parametrized polynomially and such forms can't create any state, thus we need to construct categories of variational forms that are described by a specific application. There are two categories:
+
+\begin{itemize}
+    \item Domain Specific: Uses domain knowledge in order to construct variational circuits.
+    \item Hardware Efficient: Uses ansatze that the connections are efficient for a given hardware.
+\end{itemize}
+
+\paragraph{Domain Specific}
+
+For these kinds of ansatze we exploit the characteristics of the problem which we have prior knowledge. For example, suppose we want to calculate the ground state of a molecule, then we know a priori how many particles are on the circuit. Thus we limit the variational for that only produces particle preserving transformations reducing the number of parameters needed. One of those ansatze is the Unitary Coupled-Cluster (UCC) approach, which is an adaptation of the commonly used Coupled-Cluster method. We thus use a unitary operator of the form $U(\theta)$ into a trial state $\ket{\phi}$:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \ket{\psi(\theta)} = U(\theta) \ket{\phi} = e^{T(\theta) - T^\dagger(\theta)} \ket{\phi}
+\end{empheq}
+
+This state is constructed by the hamiltonian simulation of the cluster operator $T(\theta)$ defined as $T(\theta) = \sum_k T_k (\theta)$, where:
+
+\begin{equation*}
+    T_1(\theta) = \sum_{\substack{i \in \mathrm{occ} \\ j \in \mathrm{unocc}}} \theta^{(j)}_{(i)} a^\dagger_j a_i
+\end{equation*} 
+
+\begin{equation*}
+    T_2(\theta) = \sum_{\substack{i,j \in \mathrm{occ} \\ k,l \in \mathrm{unocc}}} \theta^{(k,l)}_{(i,j)} a^\dagger_k a^\dagger_l a_i a_j
+\end{equation*} 
+
+And so on, it is important to observe that $T_k$ is given by the number of k-body terms of your approximation. For the trial state, it is common to choose the ground-state of the solution of the Hartree-Fock equation, which can be obtained efficiently. The expansion is commonly truncated to second order, giving the UCCSD ansatz. Unfortunately, this ansatz doesn't satisfy the depth problem of current devices, but could be good for fault-tolerant quantum computers in the future.
+
+\begin{figure}[H]
+    \centering
+    $e^{it Z_1 Z_2 \dots Z_5 }$ =
+    \begin{quantikz}
+        \qw & \ctrl{1} & \qw & \qw & \qw & \qw & \qw & \ctrl{1} & \qw  \\
+        \qw & \targ{} & \ctrl{1} & \qw & \qw & \qw & \ctrl{1} & \targ{} & \qw \\
+        \qw & \qw & \targ{}  & \ctrl{1} & \qw & \ctrl{1} & \targ{} & \qw & \qw \\
+        \qw & \qw & \qw  & \targ{} & \gate{Z(t)} & \targ{} & \qw & \qw & \qw \\
+    \end{quantikz}
+    \caption{Example of UCCSD circuit.}
+    \label{fig: UCCSD}
+\end{figure}
+
+\paragraph{Hardware Efficient}
+
+For this kind of ansatze we choose gates and coupling strategies that are efficient for the device that we are working on, this fixes the depth problem from the domain specific ansatze, making us control the depth that we are working on. Two common ones are $R_y R_z$ and $R_y$ followed by an entangling block that is commonly used by CNOT gates. Thus the ansatz is of the form:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \ket{\psi(\mathbf{\theta}) = U^N(\mathbf{\theta}) \ U_\mathrm{ENT} \dots \ U^1(\mathbf{\theta}) \ U_\mathrm{ENT} \ U^0(\mathbf{\theta}) \ket{0}}
+\end{empheq}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+        \lstick{\ket{0}}  & \gate{R_i(\theta_i)} \gategroup[4,steps=1,style={dashed,
+rounded corners,fill=blue!20, inner xsep=2pt},
+background]{{\sc $U(\theta)$}} & \ctrl{1} \gategroup[4,steps=2,style={dashed,
+rounded corners,fill=blue!20, inner xsep=2pt},
+background]{{\sc $U_\mathrm{ENT}$}} & \qw & \ \ldots\ \qw  & \gate{R_i(\theta_i)} \gategroup[4,steps=1,style={dashed,
+rounded corners,fill=blue!20, inner xsep=2pt},
+background]{{\sc $U(\theta)$}} & \ctrl{1} \gategroup[4,steps=2,style={dashed,
+rounded corners,fill=blue!20, inner xsep=2pt},
+background]{{\sc $U_\mathrm{ENT}$}} & \qw & \qw \\
+        \lstick{\ket{0}}  & \gate{R_j(\theta_j)} & \targ{} & \ctrl{1} & \ \ldots\ \qw & \gate{R_j(\theta_j)} & \targ{} & \ctrl{1} & \qw \\
+        \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots &  \\
+        \lstick{\ket{0}}  & \gate{R_j(\theta_j)} & \qw & \targ{}  & \ \ldots\ \qw & \gate{R_j(\theta_j)} & \qw & \targ{} & \qw 
+    \end{quantikz}
+    \caption{Example of Hardware Efficient variational circuits.}
+    \label{fig: Hardware Efficient circuit}
+\end{figure}
+
+\subsubsection{Parameter Optimization}
+\label{Subsubsec: Parameter Optimization}
+
+After selecting the ansatz we should optimize it according to a cost function that is a sum o Pauli strings. This rise all sort of problems as the quantum hardware has inherent noise and may not reflect the actual cost function \citep{wang2020noise}, another problem is to choose a suited optimizer for the specific application. It is empirically stated that the Simultaneous Pertubation Stochastic Approximation (SPSA) optimizer is a good optimizer for circuits with noise, but this is still an area of active research. SPSA approximates the gradient of the objective function with only two measurements. This is recommended on a noisy simulation or on real hardware because we do not need many measurements samples which the cost is high.
+
+\subsubsection{Creating the Objective Function}
+\label{Subsubsec: Creating the Objective Function}
+
+It is possible to decompose a Hermitian matrix into Pauli components (or Pauli strings, as sometimes is called), for instance for a $2^N \mathrm{x} 2^N$ matrix A, we have:
+
+\begin{equation*}
+    A = \frac{1}{N} \sum_{i_1,\dots,i_n} h_{i_1, \dots, i_n} \sigma_{i_1} \otimes \dots \otimes \sigma_{i_n} \ \ \ \ \mathrm{where}: \ \ h_{i_1, \dots, i_n} = \mathrm{Tr} \big( (\sigma_{i_1} \otimes \dots \otimes \sigma_{i_n}) \cdot A \big)
+\end{equation*}
+
+After decomposing the matrix into Pauli components we need to measure them on a real device, but one limitation of current quantum computers is that we need to measure in the $Z$ basis, thus in order to measure in the $X$ or $Y$ basis we need to change the basis using $H$ or $HS^\dagger$ gates. Let's consider how to convert counts into expectation values, consider $\ket{\psi} = \alpha \ket{00} + \beta \ket{01} + \gamma \ket{10} + \delta \ket{11}$:
+
+\begin{equation}
+\begin{split}
+    Z_1 Z_2 \ket{\psi} & = \alpha \ket{00} - \beta \ket{01} + \gamma \ket{10} - \delta \ket{11} \\ 
+    \Rightarrow & \bra{\psi} Z_1 Z_2 \ket{\psi} = \alpha^2 - \beta^2 - \gamma^2 + \delta^2 = P_{00} - P_{01} - P_{10} + P_{11}
+\end{split}
+\end{equation}
+
+What about if we have X (or Y) expectations?
+
+\begin{equation*}
+    \bra{\psi} Z_1 X_2 \ket{\psi} = \bra{\psi} Z_1 U_2^\dagger Z_2 U_2 \ket{\psi} = \big( \bra{\psi} U_2^\dagger \big) Z_1 Z_2 \big( U_2 \ket{\psi} \big)
+\end{equation*}
+
+For X, we have: $X = HZH$ and for Y, we have: $Y = (S^\dagger H)^\dagger Z (S^\dagger H)$, thus we only need to add those gates at the end of each circuit and measure the $Z$ expectation.
+
+Another thing you can do to calculate Pauli strings more efficiently is to use Pauli grouping, that is group Pauli strings with the same basis, for instance consider the Hamiltonian $H = Z_1 Z_2 + I_1 Z_2$, we only need one measurement:
+
+\begin{equation*}
+    \bra{\psi} I_1 Z_2 \ket{\psi} = P_{00} - P_{01} + P_{10} - P_{11}
+\end{equation*}
+which $P_{ij}$ we already know from the $Z_1 Z_2$ measurement, thus only need to rearrange the counts to get the $I_1 Z_2$ or $Z_1 I_2$ measurements.
+
+\subsubsection{Chemistry with qubits}
+\label{Subsubsec: Chemistry with qubits}
+
+To simulate systems with continuous variables in quantum computers we need to truncate them. The most direct route is to define a finite set of basis functions and then to project the exact many-body Hamiltonian onto the chosen basis. The resulting discretized system is then expressed in terms of qubits. Finally, depending on the particles involved it may also be necessary to account for their bosonic or fermionic nature. A choice of a good representation is vital as it may affect the simulation cost drastically.
+
+\paragraph{Electronic Structure qubit representations}
+
+The main objective of electronic structure is to understand the low-energy properties of the electronic structure Hamiltonians that describes a system of interacting electrons moving in the potential created by atomic nuclei, consider the Hamiltonian after the Born-Oppenhaimer Approximation, which considers the nuclei fixed:
+
+\begin{equation}
+    \label{Eq: Eletronic Hamiltonian}
+    \mathcal{H} = \overbrace{\sum_{i=1}^K - \frac{1}{2} \nabla_i^2 + V(r_i)}^{\mathcal{H}_1} + \overbrace{\sum_{1 \leq i \leq j \leq K} \frac{1}{|r_i - r_j|}}^{\mathcal{H}_2} 
+\end{equation}
+
+Here K is the number of electrons, $r_i$ is the position operator, $\mathcal{H}_1$ is the kinetic energy of non-interacting electron and the potential energy of non-interacting electrons, while $\mathcal{H}_2$ is the Coulomb repulsion between two electrons.
+
+Each electron is described by the position $r_i \in \mathbb{R}^3$ and spin $\omega_i \in \{ \uparrow, \downarrow \}$. The wavefunction of K electrons is $\psi( x_1, \dots, x_K)$, $x_i = (r_i, \omega_i)$ and must be antisymmetric under exchange of $x_i$. Electronic structure simulation algorithms based on the first quantization method describe a system of K lectrons using the configuration interaction. It is convenient to choose the Slater determinant as a basis for this space:
+
+\begin{equation*}
+    \Psi(x_1, \dots x_K) \propto \det  \begin{pmatrix}
+    \psi_1(x_1) & \psi_1(x_2) & \dots & \psi_1(x_k) \\
+    \vdots & \vdots &  \vdots &  \vdots \\
+    \psi_K(x_1) & \psi_K(x_2) & \dots & \psi_K(x_k) \\
+    \end{pmatrix}
+\end{equation*}
+
+Where $\{ \psi_i(x_i) \}^N_{i=1}$ is a set of orthonormal spin-orbitals. The set of Slater determinants spanning the Configuration Interaction space $H_{K,N}$ is formed by distributing K electrons over N one electron spin-orbitals in all possible ways, thus the dimension is $\binom{N}{K}$ and can be identified with the anti-symmetric subspace of $\big( \mathbb{C}^N \big)^{\otimes K}$.
+
+The projection of the full electronic hamiltonian onto Configuration Interaction space has the form:
+
+\begin{equation}
+    \mathcal{H} = \sum_{i=1}^K \sum_{p,q=1}^N t_{pq} \ip{p}{q}_i + \sum_{1 \leq i \neq j \leq K} \sum_{p,q,r,s = 1}^N u_{pqrs} \ip{p}{r}_i \otimes \ip{q}{s}_j
+\end{equation}
+
+The coefficients $t_{pq}$ and $u_{pqrs}$ are known as one- and two-body integrals:
+
+\begin{equation*}
+    t_{pq} = \bra{p} \big(- \frac{\nabla^2}{2} + V \big) \ket{q} 
+\end{equation*}
+
+\begin{equation*}
+    u_{pqrs} = \bra{p,q} \big( \frac{1}{|r_i - r_j|} \big) \ket{r,s} 
+\end{equation*}
+
+Which can be calculated efficiently on classical computers.
+
+Each copy of the single-electron Hilbert space $\mathbb{C}^N$ is then encoded by a register of $\log_2 N$ qubits. This requires $n = K \log_2 N$ qubits in total. The CI Hamiltonian H includes multi-qubit interactions among subset of $2 \log_2 N$ qubits.
+
+\paragraph{Second-Quantization} The second-quantization approach often results in a simpler simulation Hamiltonian and require fewer qubits, especially in the case where the filling fraction $\frac{K}{N}$ is not small. Given a set of N orbitals $\psi_1, \dots, \psi_N$ the second-quantized simulation Hamiltonian is:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \label{Eq: Second-Quantized Hamiltonian}
+    \mathcal{H} = \sum_{p,q=1}^N t_{pq} c^\dagger_p c_q + \sum_{p,q,r,s=1}^N u_{pqrs} c^\dagger_p c^\dagger_q c_r c_s
+\end{empheq}
+
+Where $c^\dagger_p$ and $c_p$ are creation and annihilation operators for the orbital $\psi_p$. Now the Hamiltonian acts on the Fock space $\mathcal{F} = \bigoplus_{k=0}^N \mathcal{H}_{k,N}$ of an arbitrary number of fermions in N spin-orbitals. 
+
+The Fock space is spanned by $2^N$ basis vectors $\ket{n_1 \dots n_N}$, where $n_p \in \{0,1\}$ is the occupation number of the orbital $\psi_p$. The definition of creation/annihilation operators is the following:
+
+\begin{equation}
+\label{Eq: Creation and Annihilation fermions}
+\begin{split}
+    c^\dagger_i \ket{\ \dots n_i \ \dots \ } & = (1 - n_i) \  (-1)^{\sum_{j<i} n_j} \ket{\ \dots \ n_i + 1 \ \dots \ } \\
+    c_i \ket{\ \dots n_i \ \dots \ } & = n_i \  (-1)^{\sum_{j<i} n_j} \ket{\ \dots \ n_i - 1 \ \dots \ } \\
+    & \Rightarrow  \ \{ c^\dagger_i, c_j \} = \delta_{ij} \ , \ [c_i, c_j] = [c^\dagger_i, c^\dagger_j] = 0
+\end{split}
+\end{equation}
+
+The advantage of second-quantization is that the Fermi statistics is automatically enforced at the operator level and the simulation has to be restricted to the subspace with exactly K occupied orbitals. The second quantization can be written in terms of qubits using one of the Fermion-to-qubit mappings.
+
+\paragraph{Fermion-to-qubit mapping} Since we are working with qubits and not fermions, we should have a 1-on-1 mapping between fermions and qubits. Let's begin with the case for only one fermion:
+
+\begin{equation*}
+\begin{split}
+        c^\dagger \ket{0} = \ket{1} & \hspace{1cm} c^\dagger \ket{1} = 0 \\
+        c \ket{0} = 0 & \hspace{1cm} c \ket{1} = \ket{0}
+\end{split}
+\end{equation*}
+
+Thus, we can do the mapping:
+
+\begin{equation*}
+    c^\dagger \rightarrow \sigma^+ \hspace{2cm} c \rightarrow \sigma^-
+\end{equation*}
+
+Now we can generalize for N fermions, using equation~\ref{Eq: Creation and Annihilation fermions} we know that to change from $n_i$ to $n_i + 1$ we use $\sigma^+_i$, how we transform $(-1)^{\sum_{j<i}n_j}$ into gates? 
+
+It's rather easy, because this is just a $\sigma^Z$ gate on each qubit that precedes $n_i$, because: $\sigma^Z \ket{n_i} = (-1)^{n_i} \ket{n_i}$. Thus we have the following mapping:
+
+\begin{empheq}[box=\tcbhighmath]{equation}
+    \label{Eq: Jordan-Wigner Mapping}
+    c^\dagger_i \rightarrow \prod_{j<i} \sigma^Z_j \sigma^+_i \hspace{2cm} c_i \rightarrow \prod_{j<i} \sigma^Z_j \sigma^-_i
+\end{empheq}
+
+This is called Jordan-Wigner Mapping and was discovered in the 20s, and it recovers fermionic algebra. There's a inherent problem that for increasing $i$, this operator becomes increasingly non-local with O(N)-local interactions, this leads to larger circuits and more measurements. 
+
+Another mapping is the parity mapping, which is still O(N)-local but simplify the number of qubits needed, let's see an example:
+
+\begin{equation*}
+    \begin{pmatrix}
+    1 & 1 & 1 & 1 \\
+    0 & 1 & 1 & 1 \\
+    0 & 0 & 1 & 1 \\
+    0 & 0 & 0 & 1 \\
+    \end{pmatrix} \cdot 
+    \begin{pmatrix}
+    a \\
+    b \\
+    c \\
+    d \\
+    \end{pmatrix}
+    = \begin{pmatrix}
+    a + b + c + d \\
+    b + c + d \\
+    c + d \\
+    d \\
+    \end{pmatrix}
+\end{equation*}
+
+Another one is the Bravyi-Kitaev \citep{bravyi2002fermionic} map which is O(log\ N)-local and uses a binary tree rule to encode fermionic modes:
+
+\begin{equation*}
+    \beta_1 = \left( 1 \right) \hspace{1cm} \rightarrow \hspace{1cm} 
+    \beta_{2^{x+1}} = \left(
+\begin{array}{c|c}
+\beta_{2^x} &  \begin{array}{ccc}
+     1 & 1 & \dots  \\
+     0 & 0 & \dots  \\
+     0 & 0 & \dots  \\
+\end{array} \\
+\hline
+0 & \beta_{2^x}
+\end{array}
+\right)
+\end{equation*}
+
+Let's see some examples:
+
+\begin{itemize}
+    \item 1 qubit:
+    \begin{equation*}
+        \left( 1 \right)
+    \end{equation*}
+    \item 2 qubits:
+    \begin{equation*}
+        \left(
+        \begin{array}{c|c}
+        1 & 1 \\
+        \hline
+        0 & 1
+        \end{array}
+        \right)
+    \end{equation*}
+    \item 4 qubits:
+    \begin{equation*}
+        \left(
+        \begin{array}{c|c}
+        \begin{array}{cc}
+        1 & 1 \\
+        0 & 1
+        \end{array} & \begin{array}{cc}
+        1 & 1 \\
+        0 & 0
+        \end{array} \\
+        \hline
+        \begin{array}{cc}
+        0 & 0 \\
+        0 & 0
+        \end{array} & \begin{array}{cc}
+        1 & 1 \\
+        0 & 1
+        \end{array}
+        \end{array}
+        \right)
+    \end{equation*}
+\end{itemize}
+
+The creation/annihilation operators mappings are:
+
+\begin{equation}
+\begin{split}
+    c^\dagger_j & \equiv X_{U(j)} \otimes \Pi_j^+ \otimes Z_{P(j)} = \frac{1}{2} \bigg( X_{U(j)} \otimes X_j \otimes Z_{P(j)} - i X_{U(j)} \otimes Y_j \otimes Z_{P(j)} \bigg) \\
+    c_j & \equiv X_{U(j)} \otimes \Pi_j^- \otimes Z_{P(j)} = \frac{1}{2} \bigg( X_{U(j)} \otimes X_j \otimes Z_{P(j)} + i X_{U(j)} \otimes Y_j \otimes Z_{P(j)} \bigg) \\
+\end{split}
+\end{equation}
+
+Where we have the following set of states:
+
+\begin{itemize}
+    \item Update Set [$U(j)$]: Qubits that are flipped when node $j$ change occupation;
+    \item Parity Set [$P(j)$]: Set of qubits that encodes the parity of the fermionic modes with index less than $j$.
+\end{itemize}
+
+It is important to note that we can calculate these encodings efficiently using a classical computer.
+
+\paragraph{Reducing further the number of qubits} Another way to reduce the number of qubits is to taper symmetries  \citep{bravyi2017tapering}. Suppose we have the Hamiltonian:
+
+\begin{equation*}
+    H = h_1 \ IXIY  \ + \ h_2 \ XZZX \ + \ h_3 XZYZ
+\end{equation*}
+
+We call the number of non-identity Pauli strings on a single qubit operator as the weight of the Pauli string. The larger the weight larger the error that is associated to that Pauli string. Now consider the following operator:
+
+\begin{equation*}
+    P_0 = XIII \hspace{1cm} \Rightarrow [H, P_0] = 0
+\end{equation*}
+
+and we also know the eigenvalues of $P_0$ (which are $\pm 1$), since this is a symmetry of the Hamiltonian we can substitute by the eigenvalues and drop this qubit on the operator:
+
+\begin{equation*}
+    H = h_1 \ XIY  \ \pm \ h_2 \ ZZX \ \pm \ h_3 ZYZ
+\end{equation*}

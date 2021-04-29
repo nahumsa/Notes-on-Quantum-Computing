@@ -1,0 +1,65 @@
+\subsection{Factoring}
+\label{subsec: Factoring}
+
+The factoring problem can be reduced to the order-finding problem, this occurs into two basic steps realized by Peter Shor in 1994 \citep{Shor}: 
+
+\begin{enumerate}
+    \item We need to show that we can compute a factor of N if we can find a non-trivial solution $x \not\equiv \pm 1 \mod N$ to the equation $x^2 \equiv 1 mod N$.
+    \item Show that a randomly chosen y co-prime to N is quite likely to have an order $r$ which is even, and such that $y^{\frac{r}{2}} \not\equiv \pm 1 \mod N$, and thus $x \equiv y^{\frac{r}{2}} \mod N$ is a non-trivial solution to $x^2 \equiv 1 \mod N$.
+\end{enumerate}
+
+These two steps are supported by the following theorems:
+
+\begin{theorem}
+Suppose N is an L bit composite number, and x is a non-trivial solution to the equation $x^2 \equiv 1 \mod N$ in the range $1 \leq x \leq N$, that is neither $x \equiv 1 \mod N$ nor $x \equiv N-1 \equiv -1 \mod N$. Then at least one of $\gcd(x-1, N)$ and $\gcd(x+1,N)$ is a non-trivial factor of N thatcan be computed using $O(L^3)$ operations.
+\end{theorem}
+
+\begin{theorem}
+Suppose $N = \prod^m_{i=1} p_i^{\alpha_i}$ is the prime factorization of an odd composite positive integer. Let x be an integer chosen uniformly at random, subject to the requirements that $1 \leq x \leq N-1$ and $x$ co-prime to N. Let $r$ be the order of $x \mod N$. Then:
+
+\begin{equation*}
+    p(r \mathrm{\ is \ even \ and \ } x^{\frac{r}{2}} \not\equiv -1 \mod N) \geq 1 - \frac{1}{2^m}
+\end{equation*}
+\end{theorem}
+
+All steps but the order finding subroutine can be efficiently computed on a classical computer, thus we have the following algorithm:
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\SetKwInOut{Input}{input}
+\SetKwInOut{Output}{output}
+\SetKwInOut{Runtime}{runtime}
+\Input{A composite number N}
+\Output{A non-trivial factor of N}
+\Runtime{$O((\log N)^3)$ operations succeed with probability $O(1)$ }
+\eIf{N is even}{
+    \eIf{$N=a^b$ for integers $a \geq 1$ and $b \geq 2$}{
+    Randomly choose $x \in [1, N-1]$
+        
+        \eIf{$\gcd(x,N) > 1$}{
+        \textbf{Quantum step}:  Use order-finding subroutine to find the order r of $x \mod N$
+        
+            \eIf{r is even and $x^{\frac{r}{2}} \not\equiv -1 \mod N$}{
+        Compute $\gcd (x^{\frac{r}{2}}-1, N)$ and $\gcd (x^{\frac{r}{2}}+1, N)$, and test if one of these is a non-trivial factor returning that factor.
+ }{The algorithm fails.}
+ }{Return the factor $\gcd(x,N)$}
+ }{Return the factor a}
+ }{Return the factor 2}
+ \caption{Shor's Factoring Algorithm}
+\end{algorithm}
+
+\begin{example}
+Let's factor the number N=91.
+
+It is obvious that N is not even and does not have the form $N=a^b$. Now we need to choose a random number x such that $x \in [1, N-1]$, we choose $x=4$ and we get $\gcd(4,91) = 1$ thus 4 is co-prime with 91.
+Now we need to find the order of $x \mod N$, this would be done in a quantum computer using order finding and we would get $r=6$. 
+
+Now for the final step:
+
+\begin{equation*}
+    x^{6/2} \mod 91 \equiv 64 \mod 91 \not\equiv -1 \mod 91
+\end{equation*}
+
+And we get that $\gcd(64-1,91)=7$. Therefore: $91=7*3$!
+\end{example}
+

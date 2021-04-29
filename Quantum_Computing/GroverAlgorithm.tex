@@ -1,0 +1,622 @@
+\subsection{Grover's Algorithm}
+\label{subsec: Grover}
+
+Grover's algorithm is useful for searching an unstructured database with N elements. For instance, you have a phone number and want to find the corresponding name associated to this phone number, since it is unstructured you need to check every element (in the worst case scenario), but if you have the solution it is easy to check, this shows that the problem is NP.
+
+In order to show Grover's algorithm we need to rephrase as an oracle problem: Labelling each element of the database $\{0,1, \dots, N-1 \}$ and $x_0$ the unknown marked item. The oracle $f$ computes the following binary function:
+
+\begin{equation}
+    f: \{0,1 \}^N \rightarrow \{0,1 \} \hspace{1em} , \hspace{1em} \mathrm{with} \hspace{2em} f(x) = \begin{cases}
+    1, & \text{if } x=x_0\\
+    0, & \text{otherwise}
+\end{cases}
+\end{equation}
+
+For a classical computer, the probability to find $x_0$ is $\frac{1}{N}$ , so to find $x_0$ with probability $p$ is needed $p N = \mathcal{O}(N)$ oracle queries. Grovers showed that on a quantum computer we can have a quadratic speedup, then we will need $\mathcal{O}(\sqrt{N})$ queries. This is not massive, but we can compare this speedup with the breakthrough that Fast Fourier Transform(FFT) did for signalling processing.
+
+\subsubsection{General Algorithm}
+\label{subsubsec: Grover Algorithm}
+
+Here we suppose a quantum oracle with the ability to recognize solutions to the search problem. This recognition is signaled by making use of an oracle qubit. More precisely:
+
+\begin{equation}
+    \ket{x} \ket{q} \rightarrow_O \ket{x} \ket{q \oplus f(x)}
+\end{equation}
+
+The oracle $\ket{q}$ is a single qubit which is flipped if $f(x) = 1$ and is unchanged otherwise. We can check if whether x is a solution by preparing $\ket{x}\ket{0}$ and seeing if the oracle qubit flips when using the oracle.
+
+It is common to use $\ket{q} = \frac{1}{\sqrt{2}} \big( \ket{0} - \ket{1} \big)$. The action of the oracle is:
+
+\begin{equation}
+    \ket{x} \frac{1}{\sqrt{2}} \big( \ket{0} - \ket{1} \big) \rightarrow_O (-1)^{f(x)} \ket{x} \frac{1}{\sqrt{2}} \big( \ket{0} - \ket{1} \big)
+\end{equation}
+
+Using this type of oracle qubit it remains the same when applying the oracle and can be omitted from the following steps of the algorithm. With this convention: 
+
+\begin{equation}
+    \ket{x} \xrightarrow[O]{} (-1)^{f(x)}\ket{x}
+\end{equation}
+
+The oracle marks the solution by shifting the phase. For a N item search problem with M solutions, we need to apply the search oracle $O(\sqrt{\frac{N}{M}})$ times in order to obtain the solution.
+
+The algorithm with the Grover operator G is the following:
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+    \qw &  [2mm] \gate{H}\qwbundle{n} & \gate[wires=2][1cm]{G} \gategroup[2,steps=4,style={dashed,
+rounded corners,fill=green!20, inner xsep=2pt},
+background,label style={label position=below,anchor=
+north,yshift=-0.2cm}]{{\sc $O(\sqrt{N})$}} & \dots & & \gate[wires=2][1cm]{G} &  [2mm]  \qw \qwbundle{n} &  \gate{H} & \meter{}\\
+    \qw & [2mm] \gate{H}\qwbundle{m} &                         &  \dots &  & & \qw & \qw & \qw
+    \end{quantikz}
+    \caption{Circuit for the Grover Algorithm, the unitary G are called Grover Iterations or Grover Operator.}
+    \label{fig: Grover Algorithm}
+\end{figure}
+
+The algorithm begins with $\ket{0}^{\otimes N}$. The Haddamard transform put in the equal superposition state, which we call $\ket{\psi}$:
+
+\begin{equation}
+    \ket{\psi} = \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} \ket{x}
+\end{equation}
+
+The algorithm consists of repeated applications of the grover operator G. This subroutine can be broken up into 4 steps:
+
+\begin{itemize}
+    \item[(1)] Apply the oracle O. 
+    \item[(2)] Apply the Haddamard transform $H^{\otimes N}$.
+    \item[(3)] Perform a conditional phase shift on the computer, with every computational basis state except $\ket{0}$ receiving a phase shift of -1: $\ket{x} \xrightarrow[]{M} -(-1)^{\delta_{x0}} \ket{x}$.
+    \item[(4)] Apply the Haddamard transform $H^{\otimes N}$.
+\end{itemize}
+
+The circuit for the Grover operator is the following:
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+    \qw &  [2mm] \gate{H}\qwbundle{n} & \gate[wires=2][1cm]{\begin{array}{c}
+         \mathrm{Oracle}  \\
+         \ket{x} \rightarrow (-1)^{f(x)} \ket{x}
+    \end{array}} & [2mm] \gate{H}\qwbundle{n} & \qw & \gate{\begin{array}{c}
+         \mathrm{Phase} \\
+         \ket{0} \rightarrow +\ket{0} \\
+          \ket{x} \rightarrow -\ket{x} 
+    \end{array}} & [2mm] \gate{H}\qwbundle{n} & \qw \\
+    \qw & \qwbundle{m}\qw &                         & \qw & \qw & \qw & \qw & \qw
+    \end{quantikz}
+    \caption{Grover Operator.}
+    \label{fig: Grover Operator}
+\end{figure}
+
+This operator for the conditional phase shift on step (2) is simply $M = 2 \op{0}{0} - \mathds{I}$, because we have:
+
+\begin{equation}
+    M = \begin{pmatrix}
+    2-1 & 0  & \dots & 0 \\
+    0   & -1 & \dots & 0 \\
+    \vdots & \ddots & \vdots & \vdots \\
+    0 & \dots & 0 & -1 
+    \end{pmatrix}
+\end{equation}
+
+Steps 2 and 4 needs $n=\log(N)$ operations each. Step 3, the conditional phase shift, can be implemented using $O(n)$ gates. But the cost of the Oracle depends on the application, on the bright side, we only need to call the oracle once. The steps 2,3,4 combined are: 
+
+\begin{equation}
+    H^{\otimes n} \big( 2 \op{0}{0} - \mathds{I} \big) H^{\otimes n} = 2 \op{\psi}{\psi} 
+\end{equation}
+
+Where $\ket{\psi}$ is the weighted superposition. Thus: $G = \big( 2\op{\psi}{\psi} - \mathds{I} \big) O $. Let's see how the operator $ 2\op{\psi}{\psi} - \mathds{I} $ acts on an arbitrary state: $\ket{\eta} = \sum_k \alpha_k \ket{k}$:
+
+\begin{equation}
+\begin{split}
+    \bigg( 2\op{\psi}{\psi} - \mathds{I} \bigg) \ket{\eta} & = \bigg( 2\op{\psi}{\psi} - \mathds{I} \bigg) \sum_k \alpha_k \ket{k} \\ 
+    & = \bigg[ \frac{2}{N} \sum_{x,y} \op{x}{y} - \mathds{I} \bigg] \sum_k \alpha_k \ket{k} = \frac{2}{N} \sum_{x,y,k} \alpha_k \op{x}{y} \ket{k} - \sum_k \alpha_k \ket{k} \\
+    & = \frac{2}{N} \sum_{x,k} \alpha_k \ket{x} - \ket{\eta}  = 2 \overbrace{\sum_{k} \frac{\alpha_k}{N}}^{\equiv \langle \alpha \rangle} \sum_x \ket{x} - \ket{\eta} \\
+    & = 2 \sum_x \langle \alpha \rangle \ket{x} - \sum_k \alpha_k \ket{k} = \sum_k \bigg[ - \alpha_k + 2 \langle \alpha \rangle \bigg] \ket{k}
+\end{split}    
+\end{equation}
+
+For this reason, sometimes this operator is called the inversion about the mean.
+
+We can have a geometric visualization of the algorithm that will help us to show that the algorithm needs $O(\sqrt{N})$ gates, for this we want to show that the Grover Operator can be regarded as a rotation in the 2D space spanned by the starting vector $\ket{\psi}$ and the state with the uniform superposition of solutions to the search problem. We adopt the convention$\sum_x^{'}$ to be the sum over all x which are solutions to the search problem, and $\sum_x''$ to be the sum over all x which are not solutions. We also define the normalized states:
+
+\begin{equation}
+    \ket{\alpha} \equiv \frac{1}{\sqrt{N-M}} \sum_x '' \ket{x} \ \ \ \ \ket{\beta} \equiv \frac{1}{\sqrt{M}} \sum_x ' \ket{x}
+\end{equation}
+
+We can rewrite $\ket{\psi}$ in terms of $\ket{\alpha}$ and $\ket{\beta}$:
+
+\begin{equation}
+    \begin{split}
+    \ket{\psi} & =  \frac{1}{\sqrt{N}} \sum_x \ket{x}  = \frac{1}{\sqrt{N}} \bigg( \sum_x ' \ket{x} + \sum_x '' \ket{x} \bigg)  \\
+     & = \frac{1}{\sqrt{N}} \bigg( \sqrt{M} \ket{\beta} + \sqrt{N-M} \ket{\alpha} \bigg) \\
+     & = \sqrt{\frac{N-M}{N}} \ket{\alpha} + \sqrt{\frac{M}{N}} \ket{\beta}
+    \end{split}
+\end{equation}
+
+So that the initial state is spanned by $\ket{\alpha}$ and $\ket{\beta}$. The effect of G can be understood in a beautiful way by showing that the oracle $O$ performs a reflection about the vector $\ket{\alpha}$ and $\ket{\beta}$. That is:
+
+\begin{equation}
+    O ( a \ket{\alpha} + b \ket{\beta}) = a \ket{\alpha} - b \ket{\beta}
+\end{equation}
+
+Similarly, $2 \proj{\psi} - I$ also performs a reflection in the plane about the vector $\ket{\psi}$. The product of two reflections is a rotation!
+
+Thus $G^k\ket{\psi}$ remains in the space spanned by $\ket{\alpha}$ and $\ket{\beta}$. Let $\cos \big( \frac{\theta}{2} \big) = \sqrt{\frac{N- M}{N}}$, so that $\ket{\psi} = \cos \frac{\theta}{2} \ket{\alpha} + \sin \frac{\theta}{2} \ket{\beta}$. Let's see what happens on a grover iteration:
+
+% FIGURE
+\begin{SCfigure}[0.7][!h]
+\definecolor{ffqqqq}{rgb}{1,0,0}
+\definecolor{qqwuqq}{rgb}{0,0.39215686274509803,0}
+\scalebox{0.5}{
+\begin{tikzpicture}[line cap=round,line join=round,>=triangle 45,x=1cm,y=1cm]
+\clip(-7.032,-3.807818181818185) rectangle (14.352,10.712181818181827);
+\draw [shift={(0,0)},line width=2pt,color=qqwuqq,fill=qqwuqq,fill opacity=0.10000000149011612] (0,0) -- (0:1.98) arc (0:15.945395900922854:1.98) -- cycle;
+\draw [shift={(0,0)},line width=2pt,color=qqwuqq,fill=qqwuqq,fill opacity=0.10000000149011612] (0,0) -- (-15.945395900922854:1.98) arc (-15.945395900922854:0:1.98) -- cycle;
+\draw [shift={(0,0)},line width=2pt,color=qqwuqq,fill=qqwuqq,fill opacity=0.10000000149011612] (0,0) -- (15.945395900922854:1.54) arc (15.945395900922854:40.60129464500447:1.54) -- cycle;
+\draw [shift={(0,0)},line width=2pt,color=ffqqqq,fill=ffqqqq,fill opacity=0.1] (0,0) -- (0:2.2) arc (0:40.60129464500447:2.2) -- cycle;
+\draw [->,line width=2pt] (0,0) -- (0,7);
+\draw [->,line width=2pt] (0,0) -- (7,0);
+\draw [->,line width=2pt] (0,0) -- (7,2);
+\draw [shift={(0,0)},line width=2pt,color=qqwuqq] (0:1.98) arc (0:15.945395900922854:1.98);
+\draw[line width=2pt,color=qqwuqq] (1.8791592844947271,0.26318554956013807) -- (2.042564439668182,0.28607124952188884);
+\draw [->,line width=2pt] (0,0) -- (7,-2);
+\draw [shift={(0,0)},line width=2pt,color=qqwuqq] (-15.945395900922854:1.98) arc (-15.945395900922854:0:1.98);
+\draw[line width=2pt,color=qqwuqq] (1.8791592844947271,-0.26318554956013807) -- (2.042564439668182,-0.28607124952188884);
+\draw [->,line width=2pt] (0,0) -- (7,6);
+\draw [shift={(0,0)},line width=2pt,color=qqwuqq] (15.945395900922854:1.54) arc (15.945395900922854:40.60129464500447:1.54);
+\draw[line width=2pt,color=qqwuqq] (1.2527287348884497,0.7449677622453118) -- (1.394547082234313,0.8293037353296864);
+\draw[line width=2pt,color=qqwuqq] (1.3121287335241476,0.634526939270761) -- (1.4606716090174479,0.7063601776787721);
+\begin{scriptsize}
+\draw[color=black] (0.426,7.0) node {$| \beta \rangle$};
+\draw[color=black] (6.608,-0.3208181818181818) node {$|\alpha \rangle$};
+\draw[color=black] (6.63,2.3) node {$ | \psi \rangle$};
+\draw[color=qqwuqq] (2.5,0.30) node {$\frac{\theta}{2}$};
+\draw[color=black] (6.124,-2.08) node {$O | \psi \rangle$};
+\draw[color=qqwuqq] (2.4,-0.32) node {$\frac{\theta}{2}$};
+\draw[color=black] (5.9,4.59) node {$ G | \psi \rangle$};
+\draw[color=qqwuqq] (1.3,0.75) node {$ \theta $};
+\draw[color=ffqqqq] (2.8,1.2) node {$\theta + \frac{\theta}{2} = \frac{3\theta}{2}$};
+\end{scriptsize}
+\end{tikzpicture}
+}
+\label{Fig: Geometric Grover}
+\caption{Geometric picture of the Grover Iteration.}
+\end{SCfigure}
+
+
+We see from the figure that:
+
+\begin{equation}
+    G \ket{\psi} = \cos \frac{3 \theta}{2} \ket{\alpha} + \sin \frac{3 \theta}{2} \ket{\beta}
+\end{equation}
+
+So the rotation is equal to $\theta$. It follows that after k iterations of G, we have:
+
+\begin{equation}
+    G^k \ket{\psi} = \cos \bigg( \frac{2k + 1}{2} \theta \bigg) \ket{\alpha} + \sin \bigg( \frac{2k + 1}{2} \theta \bigg) \ket{\beta}
+\end{equation}
+
+Thus, in the $\{ \ket{\alpha}, \ket{\beta} \}$ basis, we can write the Grover iteration as:
+
+\begin{equation}
+    G = \begin{bmatrix}
+    \cos \theta & - \sin \theta \\
+    \sin \theta & \cos \theta
+    \end{bmatrix}
+\end{equation}
+
+Where $\theta \in [0, \frac{\pi}{2}]$ and $\sin \theta = \sin \bigg( \frac{\theta}{2} + \frac{\theta}{2} \bigg) = 2 \sin \frac{\theta}{2} \cos \frac{\theta}{2} \Rightarrow \sin \theta = 2 \frac{\sqrt{M(N-M)}}{N}$
+
+In conclusion, the grover iteration acts as a rotation towards $\ket{\beta}$ in the space spanned by $\{ \ket{\alpha}, \ket{\beta} \}$, so repeated applications of G are required for us to measure $\ket{\beta}$ with high probability.
+
+\subsubsection{Performance}
+\label{subsubsec: Grover Performance}
+How many times we need to repeat the Grover operator in order to rotate $\ket{\psi}$ near $\ket{\beta}$?
+
+The initial system starts with $\ket{\psi} = \sqrt{\frac{N-M}{N}} \ket{\alpha} + \sqrt{\frac{M}{N}} \ket{\beta}$, so rotating through $\arccos \sqrt{\frac{M}{N}}$ radians takes the system to $\ket{\beta}$. Let denote the closest integer to the real number $x$ as $\mathrm{CI}(x)$, where we round halves down. Then repeating the grover iteration $ R = \mathrm{CI}\bigg( \frac{\arccos \sqrt{\frac{M}{N}}}{\theta} \bigg)$ times rotates $\ket{\psi}$ within an angle $\frac{\theta}{2} \leq \frac{\pi}{4}$ of $\ket{\beta}$.
+
+Observation of the state in the computational basis then yields a solution to the search problem with a probability at least $\frac{1}{2}$. For specific values of M and N it is possible to achieve higher probability of success. For example, if $M << N$, we have that $\sin \theta \approx \theta$, and thus the angular error in the final state is at most $\frac{\theta}{2} \approx \sqrt{\frac{M}{N}}$, giving probability of at most $\frac{M}{N}$.
+
+The form of R is an exact expression for the query complexity of the search algorithm, but we can have a simpler expression that summarizes the essential behaviour of R. Note that $R \leq \lceil \frac{\pi}{2 \theta} \rceil$, because $\arccos \sqrt{\frac{M}{N} \leq \frac{\pi}{2}}$, so we can give an upper bound on R. Firstly we assume $M \leq \frac{N}{2}$, thus $\frac{\theta}{2} \geq \sin \frac{\theta}{2} = \sqrt{\frac{M}{N}}$. Then we have a upper bound for R:
+
+\begin{equation}
+    R \leq \bigg\lceil \frac{\pi}{4} \sqrt{\frac{
+    N}{M}} \ \bigg\rceil
+\end{equation}
+
+Thus, $R = O\big( \sqrt{\frac{N}{M}} \big)$ oracle calls must be performed in order to obtain a solution with high probability. We have a polynomial speed-up over the classical algorithm.
+
+We only considered the case when $M < \frac{N}{2}$, what happens if this is not the case? In this case the angle $\theta$ gets smaller and we need more interactions as M increases. But since we expect to be easy to find a solution ( because $M \geq \frac{N}{2}$ ) we can randomly pick a solution and check if it is a solution using the oracle. This succeeds with probability at least $\frac{1}{2}$, and requires only one query of the oracle, but only works if we know the number of solutions in advance.
+
+If we don't know that $M \geq \frac{N}{2}$. We can double the number of elements in the search space by adding N extra items, none which are solutions. This is done by adding a single qubit $\ket{q}$ to the search index, doubling the numbers of items to be searched to $2N$. A new augmented oracle $O'$ can be constructed in a way that marks an item only if it is a solution to the search problem and the extra bit is set to zero; The new search problem has only M solutions out of $2N$, so using $R = \frac{\pi}{4} \sqrt{\frac{2N}{M}}$ queries of $O'$ we get a solution of high probability, since we are using the Big-O notation  we are ignoring constants that multiply the scaling and we have the same scaling $O \big( \sqrt{\frac{N}{M}} \big)$.
+
+\subsubsection{Searching for 1 Item on N=4 elements}
+\label{subsubsec: Grover N=4}
+
+To understand the more general algorithm we start with an example:
+
+The circuit for this example is on \cite{Benenti_1}:
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}[slice all,remove end slices=7,slice
+titles=\ket{\psi_{\col}},slice style=blue,slice label style
+={inner sep=1pt,anchor=south}]
+      \lstick{\ket{0}}   &  \gate{H} & \gate[wires=3]{O} &  \gate{H}   & \gate{X} & \qw & \ctrl{1} & \qw & \gate{X} & \gate{H} & \qw \\
+     \lstick{\ket{0}}   &  \gate{H} &  & \gate{H}   & \gate{X} & \gate{H} &  \targ{} &  \gate{H}   & \gate{X} & \gate{H} &  \qw \\
+      \lstick{\ket{1}}  & \gate{H} &  & \qw & \qw & \qw  & \qw & \qw & \qw & \qw & \qw
+    \end{quantikz}
+    \caption{Grover Algorithm for N=4.}
+    \label{fig: Grover N=4}
+\end{figure}
+
+
+So we start with two qubits in the state $\ket{00}$ and an ancillary state $\ket{1}$: 
+\begin{equation}
+    \ket{\psi_0} = \ket{00} \ket{1}
+\end{equation}
+
+Then we apply in all qubits Hadamard gates in order to have all possible bit strings:
+
+\begin{equation}
+    \ket{\psi_1} = H^{\otimes3} \ket{\psi_0} = \frac{1}{2} \big( \ket{00} + \ket{01} + \ket{10} + \ket{11} \big) \frac{1}{\sqrt{2}} \big( \ket{0} - \ket{1} \big)
+\end{equation}
+
+The oracle query works to mark down the searched state:
+
+\begin{equation}
+    O \ket{x} \ket{y} = \ket{x} \ket{y \oplus f(x)}
+\end{equation}
+
+Since the ancillary state is $\frac{1}{\sqrt{2}} \big( \ket{0} - \ket{1} \big)$ it is the same if $f(x) = 0$ but changes sign if $f(x) = 1$. Suppose the item that we are searching is $x_0 = (1,0) \rightarrow \ket{10}$, after the oracle query we have:
+
+\begin{equation}
+   \ket{\psi_2} = O \ket{\psi_1} = \frac{1}{2} \big(  \ket{00} + \ket{01} - \ket{10} + \ket{11} \big) \frac{1}{\sqrt{2}} \big( \ket{0} - \ket{1} \big)
+\end{equation}
+
+This is the same process of kicking back the sign that we have on the Deutsch's Algorithm. Since the ancillary state is the same, we will ignore it on the calculation.
+
+Since in Quantum Mechanics the probability of measuring a state is the absolute value squared we cannot distinguish between the four state superposition. The first part of the algorithm is to mark the state that we are interested and the last part is to amplify its probability to be measured.
+
+This is done by means of the unitary transformation:
+
+\begin{equation}
+    D_{ij} = - \delta_{ij} + \frac{2}{2^N}
+\end{equation}
+
+For $N=2$, we have that:
+
+\begin{equation}
+    D = \frac{1}{2} \begin{pmatrix}
+    -1 & 1 & 1 & 1 \\
+    1 & -1 & 1 & 1 \\
+    1 & 1 & -1 & 1 \\
+    1 & 1 & 1 & -1
+    \end{pmatrix}
+\end{equation}
+
+It is usually not easy to find the circuit representation of unitary transformations, but after some work and some experience we can decompose $D$:
+
+\begin{equation}
+D = H^{\otimes2} \ D' \ H^{\otimes2}
+\end{equation}
+
+Where $D'$ is:
+
+\begin{equation}
+    D' = \begin{pmatrix}
+    1 &  0  & 0 & 0 \\
+    0 & -1  & 0 & 0 \\
+    0 &  0 & -1 & 0 \\
+    0 &  0 & 0 & -1
+    \end{pmatrix}
+\end{equation}
+
+This is a controlled phase shift through an angle $\pi$ in the coefficient in front of the basis element $\ket{00}$. Again we need to decompose $D'$:
+
+\begin{equation}
+    D' = X^{\otimes2} \ (I \otimes H) \ CNOT \ (I \otimes H) \ X^{\otimes2}
+\end{equation}
+
+This comes from the $CMINUS$ gate, that is: 
+
+\begin{equation}
+    CMINUS = (I \otimes H) \ CNOT \ (I \otimes H) = \begin{pmatrix}
+    1 &  0  & 0 & 0 \\
+    0 & 1  & 0 & 0 \\
+    0 &  0 & 1 & 0 \\
+    0 &  0 & 0 & -1
+    \end{pmatrix}
+\end{equation}
+
+The NOT (X) gates places the phase factor in front of the $\ket{00}$ instead of the $\ket{11}$.
+
+So applying D on our state $\ket{\psi_2}$, we have:
+
+\begin{equation}
+    D \ \frac{1}{2} \ \begin{pmatrix}
+    1 \\
+    1 \\ 
+    -1 \\
+    1
+    \end{pmatrix} =  \frac{1}{4} \begin{pmatrix}
+    -1 & 1 & 1 & 1 \\
+    1 & -1 & 1 & 1 \\
+    1 & 1 & -1 & 1 \\
+    1 & 1 & 1 & -1
+    \end{pmatrix} \begin{pmatrix}
+    1 \\
+    1 \\ 
+    -1 \\
+    1
+    \end{pmatrix}
+    = \begin{pmatrix}
+    0 \\
+    0 \\ 
+    1 \\
+    0
+    \end{pmatrix}
+\end{equation}
+
+So if we measure the two qubits, we have that the outcome will be $\ket{10}$ with $100 \%$ certainty. 
+ 
+For a Classical algorithm we would need on average $N_c = \frac{1}{4} \cdot 1 + \frac{1}{4} \cdot 2 + \frac{1}{2} \cdot 3 = 2.25$ queries. In the Quantum algorithm we would only need one query, thus $N_Q = 1$.
+
+
+
+\subsubsection{Implementation on Qiskit}
+\label{subsubsec: Grover Qiskit}
+
+Here I will follow the Qiskit Book \cite{Qiskit-Textbook} and we will focus on the implementation for $N=4$ as the example before, but the algorithm implementation is not hard to scale up for any $N$.
+
+The first part of the algorithm is to build an oracle that marks the desired state, let's consider the marked up state $\ket{11}$.
+
+Therefore, we need that the oracle acts as follows:
+
+\begin{equation}
+    O \ket{s} = O \ \frac{1}{2} \ \bigg( \ket{00} + \ket{01} + \ket{10} + \ket{11} \bigg) = \frac{1}{2} \ \bigg( \ket{00} + \ket{01} + \ket{10} - \ket{11} \bigg)
+\end{equation}
+
+This is the same as a controled Z gate, that means if your first qubit is $\ket{1}$, then you apply an Z operator on the seccond qubit:
+
+\begin{equation}
+    \mathrm{CZ} = \ket{0}\bra{0} \otimes \mathds{1} + \ket{1}\bra{1} \otimes Z
+\end{equation}
+
+Therefore, the circuit for this part is:
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+      \lstick{\ket{0}}   & \gate{H} & \ctrl{1} & \qw \\
+      \lstick{\ket{0}}  & \gate{H} & \gate{Z} & \qw
+    \end{quantikz}
+    \caption{Grover implementation on Qiskit, step 1.}
+    \label{fig: Grover N=4 Qiskit 1}
+\end{figure}
+
+
+The next part is the amplitude augmentation, since the only the sign is changed, there is no difference between this state and the state with all superpositions upon measurement. We need to grow the marked state probability to be measured.
+
+This can be done by the reflection: $D = 2 \ket{s} \bra{s} - \mathds{1}$. As shown on the previous section, we have that: $D = H^{2\otimes}D'H^{2\otimes}$, where:
+
+\begin{equation}
+    D' = \begin{pmatrix}
+    1 &  0  & 0 & 0 \\
+    0 & -1  & 0 & 0 \\
+    0 &  0 & -1 & 0 \\
+    0 &  0 & 0 & -1
+    \end{pmatrix}
+\end{equation}
+
+Therefore:
+
+\begin{equation}
+    D' \ket{s} = \frac{1}{2} \ \bigg( \ket{00} - \ket{01} - \ket{10} - \ket{11} \bigg)
+\end{equation}
+
+We know that the state $\ket{00}$ is the only one that changes the sign and we also know that we can change the sign of $\ket{11}$ by an CZ gate. The other signs can be changed using Z gates on each qubit, because $Z\ket{i} = (-1)^i \ket{i}$.
+
+Therefore the circuit for the reflection is the following:
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+      \qw  & \gate{H} & \gate{Z} & \ctrl{1} & \gate{H} & \qw \\
+      \qw  & \gate{H} &  \gate{Z} & \gate{Z} & \gate{H} & \qw
+    \end{quantikz}
+    \caption{Grover implementation on Qiskit, step 2.}
+    \label{fig: Grover N=4 Qiskit 2}
+\end{figure}
+
+
+Now we have our full circuit:
+
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+     \lstick{\ket{0}}   & \gate{H} & \ctrl{1} & \gate{H} & \gate{Z} & \ctrl{1}  & \gate{H} &  \qw & \rstick{\ket{1}} \\
+      \lstick{\ket{0}}  & \gate{H} & \gate{Z} & \gate{H} &  \gate{Z} & \gate{Z}  & \gate{H} &  \qw & \rstick{\ket{1}}
+    \end{quantikz}
+    \caption{Grover implementation on Qiskit, full circuit.}
+    \label{fig: Grover N=4 Qiskit 3}
+\end{figure}
+
+The qiskit implementation is on the
+\href{https://github.com/nahumsa/Introduction-to-IBM_Qiskit}{following notebook}.
+
+\subsubsection{Optimality of Quantum Search}
+\label{subsubsec: Optimality Grover}
+
+It has been shown previously that Grover's search algorithm can search N item with query complexity $O(\sqrt{N})$. We can ask a question: What would happen if we had a quantum algorithm that is $O(\mathrm{log}N)$? 
+
+If this was possible we could solve \textbf{NP}-Complete problems efficiently using a quantum computer, which means $NP \subseteq BQP$. To see if there exists a quantum search algorithm better than Grover's algorithm we need to check the lower bound of the algorithm, therefore we would like to show that the Quantum Search Problem requires $\Omega(\sqrt{N})$ queries.
+
+Suppose that the algorithm starts with $\ket{\psi}$ and we want to find a single solution $\ket{x}$. To determine this solution we apply the oracle $O_x = \mathds{1} - 2 \ket{x}\bra{x}$ and the following circuits: 
+
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+      \lstick[wires=3]{$\ket{\psi}$}   & \gate[wires=3]{U_k} & \gate[wires=3]{O_x} & \gate[wires=3]{U_{k-1}} & \gate[wires=3]{O_x} &  \qw  & & & \gate[wires=3]{U_1} & \gate[wires=3]{O_x} & \qw & \rstick[wires=3]{$\ket{\psi^x_k}$} \\
+       & & & & & \qw & \cdots & & & & \qw &  \\
+       & & & & & \qw & & & & & \qw &
+    \end{quantikz}
+    \caption{.}
+    \label{fig: Grover Opt. Adversarial}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{quantikz}
+      \lstick[wires=3]{$\ket{\psi}$}   & \gate[wires=3]{U_k} &  \gate[wires=3]{U_{k-1}} &   \qw  & & & \gate[wires=3]{U_1} & \qw & \rstick[wires=3]{$\ket{\psi_k}$} \\
+       & & & \qw & \cdots & & & \qw &  \\
+       & & & \qw & & & & \qw &
+    \end{quantikz}
+    \caption{.}
+    \label{fig: Grover Opt. U_k}
+\end{figure}
+
+We want to bound a quantity that we call deviation ($D_k$): 
+
+\begin{equation}
+    \underbrace{D_k}_{\mathrm{Deviation}} = \sum_x ||  \overbrace{\psi^x_k}^{\ket{\psi^x_k}}  - \underbrace{\psi_k}_{\ket{\psi_k}} ||^2
+\end{equation}
+
+For a sanity check, we have $\psi_k^x = \psi_k \Rightarrow D_k = 0$. To show the lower bound, we want to prove two steps:
+
+\begin{itemize}
+    \item[(a)] We want to prove a bound on $D_k$ which states that it can't grow faster than $O(k^2)$;
+    \item[(b)] Prove that $D_k$ must be $\Omega(N)$ if it is possible to distinguish N alternatives.
+\end{itemize}
+
+We will prove statement (a) by induction:
+
+Let's show that is valid for 0: $D_0 = \sum_x || \psi_0^x - \psi_0||^2$, but $\psi_0^x = \ket{\psi} = \psi_0$, then: $D_0 = 0$
+
+Suppose that it is valid for k: $D_k \leq 4 k^2$
+
+Let's prove this statement is valid for k+1:
+
+\begin{equation}
+    D_{k+1} = \sum_x || O_x \psi_k^x - \psi_k ||^2
+    = \sum_x || O_x ( \psi_k^x - \psi_k) + (O_x - I) \psi_k||^2
+\end{equation}
+
+Using that $|| b + c ||^2 \leq ||b||^2 + 2||b|| \cdot ||c|| + ||c||^2$:
+
+\begin{equation}
+    D_{k+1} \leq \sum_x \bigg( || \psi_k^x - \psi_k||^2 + 4 || \psi_k^x - \psi_k|| \ || \ip{x}{\psi} || + 4 |\ip{x}{\psi_k}|^2 \bigg)
+\end{equation}
+
+\begin{equation}
+    \label{Eq: D_k+1}
+    D_{k+1} \leq D_k + 4 \sum_x || \psi_k^x - \psi_k||\ || \ip{x}{\psi} || + 4
+\end{equation}
+
+
+Using Cauchy-Schwarz: $\big|\sum_x u_x \bar{v}_x \big|^2 \leq \big|\sum_x u_x \big|^2 \big|\sum_{x'} v_{x'} \big|^2 $
+
+\begin{equation}
+    \bigg|\sum_x || \psi_k^x - \psi_k||\ |\ip{x}{\psi_k}|\bigg|^2 \leq \bigg|\overbrace{\sum_x || \psi_k^x - \psi_k||^2 }^{D_k}\bigg|\ \overbrace{\bigg|\sum_{x'} |\ip{x'}{\psi_k}|^2}^{=1} \bigg| 
+\end{equation}
+
+Thus:
+
+\begin{equation}
+    \label{Eq: sum for D_k+1}
+    \sum_x || \psi_k^x - \psi_k||\ |\ip{x}{\psi_k}| \leq \sqrt{D_k}
+\end{equation}
+
+Applying eq~\ref{Eq: sum for D_k+1} on eq~\ref{Eq: D_k+1}: 
+\begin{equation}
+    D_{k+1} \leq D_k + 4 \sqrt{D_k} + 4
+\end{equation}
+
+By hypothesis $D_k \leq 4k^2$, therefore:
+\begin{equation}
+    D_{k+1} \leq 4k^2 + 8k + 4 = 4(k+1)^2
+\end{equation}
+
+Then since it is valid for $k=0$ and assuming $k$ is valid then $k+1$ is also valid we've shown that $D_k \leq 4k^2$ by induction. \qedsymbol
+
+We want to show that the probability of success can only be high if $D_k$ is $\Omega(N)$. We suppose $|\ip{x}{\psi_k^x}|^2 \geq \frac{1}{2} \ \forall x$ so that an observation is a solution to the problem with probability at least $\frac{1}{2}$. If we add a phase to $\ket{x}$ the probability of success is the same, so we may assume: $\ip{x}{\psi_k^x} = |\ip{x}{\psi_k^x}|$.
+
+\begin{equation}
+    || \psi^x_k - x ||^2 = \ip{\psi_k^x}{\psi_k^x} - 2|\ip{x}{\psi_k^x}| + \ip{x}{x}
+        = 2 - 2\underbrace{|\ip{x}{\psi_k^x}|}_{\big|\ip{x}{\psi_k^x}\big|^2 \geq \frac{1}{2}}
+\end{equation}
+
+Therefore: $|| \psi^x_k - x ||^2 \leq 2 - \sqrt{2}$
+
+Let's define two new metrics: $E_k \equiv \sum_x || \psi^x_k - x ||^2$ and $F_k \equiv \sum_x || x - \psi_k ||^2$. Then let's check the bound of $D_k$:
+
+\begin{equation}
+    D_k = \sum_x || (\psi^x_k - x) + (x - \psi_k) ||^2
+\end{equation}
+
+\begin{equation}
+D_k \geq \sum_x ||\psi^x_k - x||^2 - 2 \sum_x ||\psi^x_k -x || \cdot ||x - \psi_k|| + \sum_x || x - \psi_k||^2
+\end{equation}
+
+\begin{equation}
+D_k \geq E_k + F_k - 2 \sum_x ||\psi^x_k -x || \cdot ||x - \psi_k||
+\end{equation}
+
+From Cauchy-Schwarz, we have:
+\begin{equation}
+    \sum_x || \psi_k^x - x || \cdot || x - \psi_k || \leq \underbrace{\bigg( \sum_x || \psi_k^x - x||^2 \bigg)^{\frac{1}{2}}}_{\sqrt{E_k}} \underbrace{\bigg( \sum_x || x - \psi_k ||^2 \bigg)^{\frac{1}{2}}}_{\sqrt{F_k}}
+\end{equation}
+
+Therefore: 
+
+\begin{equation}
+    \sum_x || \psi_k^x - x || \cdot || x - \psi_k || \leq \sqrt{E_k F_k}
+\end{equation}
+
+Then, we can finally find the lower bound for $D_k$:
+\begin{equation}
+    D_k \geq E_k + F_k - 2 \sqrt{E_k F_k} = (\sqrt{F_k} - \sqrt{E_k})^2
+\end{equation}
+
+Now let's check the lower bound for $F_k$:
+\begin{equation}
+    \sum_x|| \psi - x ||^2 = \sum_x \underbrace{|\ip{\psi}{\psi}|^2}_{=1} + \underbrace{|\ip{x}{x}|^2}_{=1} - ( \ip{x}{\psi} + \ip{\psi}{x})
+\end{equation}
+
+\begin{equation}
+    = 2N - \sum_x ( \ip{x}{\psi} + \ip{\psi}{x})
+\end{equation}
+
+We can use that $\sum_x ( \ip{x}{\psi} + \ip{\psi}{x}) \leq 2 \sum_x |\ip{x}{\psi}|$ and Schwarz-Cauchy:
+
+\begin{equation}
+    (\sum_x |\ip{x}{\psi}| \cdot 1)^2 \leq \sum_x \underbrace{|\ip{x}{\psi}|^2}_{=1} \cdot \sum_{x'}1 = N
+\end{equation}
+
+Therefore:
+\begin{equation}
+    \sum_x || \psi - x ||^2 \geq 2N - 2 \sqrt{N}
+\end{equation}
+
+We have shown that $F_k \geq 2N - 2\sqrt{N}$ and $E_k \leq (2 - \sqrt{2}) N$. Combining these two results on $D_k$, we have:
+
+\begin{equation}
+    D_k \geq ( \sqrt{2N} - \sqrt{(2 - \sqrt{2})N} )^2 \geq ( \sqrt{2} - \sqrt{2 - \sqrt{2}})^2 N
+\end{equation}
+
+Therefore, we've proved that:
+\begin{equation}
+    D_k \geq c N
+\end{equation}
+
+We've shown that $D_k \leq 4k^2$ and $D_k \geq cN$. Combining those results:
+
+\begin{equation}
+    4 k^2 \geq cN \Rightarrow k \geq \sqrt{\frac{cN}{4}}
+\end{equation}
+
+Therefore, to achieve probability of at least $\frac{1}{2}$, we need $\Omega(\sqrt{N})$ gates. \qedsymbol
+
+Then Grover's Algorithm is optimal, there is no way that we can improve it. There is no indication that we can solve NP-Complete problems on Quantum Computers. Therefore, $\mathrm{NP} \not\subset \mathrm{BQP}$ relative to an oracle.

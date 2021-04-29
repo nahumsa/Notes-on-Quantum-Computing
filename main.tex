@@ -1,0 +1,117 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{verbatim}
+\usepackage{dsfont}
+
+%Double spacing
+\usepackage{setspace}
+\doublespacing
+
+%Theorems Environment
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{example}{Example}
+\newtheorem*{remark}{Remark}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\usepackage[colorlinks=true, allcolors=blue,bookmarks=true]{hyperref} %references
+
+%Make tight space on edges for text
+\usepackage{anysize}
+%\marginsize{left}{right}{top}{botton}
+\marginsize{1cm}{1cm}{1cm}{1cm}
+
+%Commands    
+\newcommand{\ip}[2]{\ensuremath{\left\langle{#1}\middle\vert{#2}\right\rangle}}
+\newcommand{\expval}[1]{\ensuremath{\left\langle #1 \right\rangle}}
+\newcommand{\op}[2]{\ensuremath{\left\vert{#1}\middle\rangle\middle\langle{#2}\right\vert}}
+
+\usepackage{natbib} %Bibliography
+\usepackage{graphicx} %images
+\usepackage{float} %images to stay on place
+% \usepackage[braket, qm]{qcircuit}
+% \usepackage[qm]{qcircuit}
+\usepackage{pgf,pgfplots}
+\pgfplotsset{compat=1.15}
+\usepackage{mathrsfs}
+
+% Algorithms
+\usepackage[ruled,vlined]{algorithm2e}
+
+% Circle equations 
+\usepackage{empheq}
+\usepackage[most]{tcolorbox}
+
+\usetikzlibrary{arrows}
+\usepackage{tikz}
+\usetikzlibrary{quantikz}
+% Updated for remove warning
+% \usepackage{circuitikz}
+\usepackage[RPvoltages]{circuitikz}
+
+\usepackage{sidecap}
+\usepackage{epigraph}
+\title{Notes on Quantum Computing}
+\author{Nahum Sá}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+    These are my notes about quantum computing.
+\end{abstract}
+\newpage
+\tableofcontents
+\newpage
+
+% Quantum Information Chapter
+\include{Quantum_Information/Main_Section}
+\include{Quantum_Information/Qubits}
+\include{Quantum_Information/DensityMatrix}
+\include{Quantum_Information/QubitsRevisited}
+\include{Quantum_Information/Purification}
+% \include{Quantum_Information/Fidelity}
+% \include{Quantum_Information/POVM}
+\include{Quantum_Information/Entanglement}
+\include{Quantum_Information/NoGoTheorems}
+\include{Quantum_Information/Channels}
+\include{Quantum_Information/QuantumMetrics}
+
+\newpage
+
+% Quantum Computing Chapter
+\include{Quantum_Computing/Main_Section}
+\include{Quantum_Computing/QuantumGates}
+\include{Quantum_Computing/DeutschAlgorithm}
+\include{Quantum_Computing/DeutschJoszaAlgorithm}
+\include{Quantum_Computing/GroverAlgorithm}
+\include{Quantum_Computing/QuantumFourierTransform}
+\include{Quantum_Computing/QuantumPhaseEstimation}
+\include{Quantum_Computing/OrderFinding}
+\include{Quantum_Computing/Factoring}
+\include{Quantum_Computing/PeriodFinding}
+\include{Quantum_Computing/HiddenSubgroup}
+\include{Quantum_Computing/QuantumCounting}
+\include{Quantum_Computing/HHLAlgorithm}
+\include{Quantum_Computing/VQE}
+\include{Quantum_Computing/QAOA}
+\include{Quantum_Computing/VQT}
+
+\newpage
+\include{Quantum_Hardware/Main_Section}
+\include{Quantum_Hardware/TransmonPhysics}
+
+\newpage
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{Bibliography.bib}
+
+\end{document}
+
+

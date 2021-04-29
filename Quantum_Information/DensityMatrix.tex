@@ -1,0 +1,167 @@
+\subsection{Density Matrix}
+\label{Subsection: Density Matrix}
+\paragraph{} Density matrix is a generalization of quantum states (For the sake of simplicity, some people call the density matrix of a system the state of a system, because we can always purify it, see Sec~\ref{Subsection: Purification}). I will introduce this concept with an example that will be easily generalized.
+
+Consider that you send a state $\ket{+}$ with probability p and a state $\ket{0}$ with probability $(1-p)$, where: $\ket{+} = \frac{\ket{0} + \ket{1}}{\sqrt{2}}$, how would you describe this state as a ket? No!
+
+Since you do not know which state came out exactly, you need to consider this uncertainty into our formulation, this is done using a density matrix $\rho$:
+\begin{equation}
+    \rho = p \ket{+} \bra{+} + (1-p) \ket{0} \bra{0} = \frac{p}{2}\begin{pmatrix}
+     1 & 1 \\
+     1 & 1
+    \end{pmatrix} + (1-p) \begin{pmatrix}
+    1 & 0 \\
+    0 & 0
+    \end{pmatrix} = \begin{pmatrix}
+    1 - \frac{p}{2} & \frac{p}{2} \\
+    \frac{p}{2} & \frac{p}{2}
+    \end{pmatrix}
+\end{equation}
+
+Let's consider $p = \frac{1}{2}$: 
+
+\begin{equation}
+    \rho = \begin{pmatrix}
+    \frac{3}{4} & \frac{1}{4} \\
+    \frac{1}{4} & \frac{1}{4}
+    \end{pmatrix}
+\end{equation}
+
+ 
+What is the probability to measure the state $\ket{0}$? 
+ 
+
+By intuition since we have probability $\frac{1}{2}$  of finding the state on $\ket{+} = \frac{\ket{0} + \ket{1}}{\sqrt{2}}$  and probability $\frac{1}{2}$  of finding the state on $\ket{0}$, the probability of measuring $\ket{0}$ in the state $\ket{+}$ is $\frac{1}{2}$ given by the second postulate of quantum mechanics, therefore the probability is given by:
+
+\begin{equation}
+    p(0) = \frac{1}{2}\overbrace{\frac{1}{2}}^{\ket{+}} + \  \frac{1}{2}\overbrace{1}^{\ket{0}} = \frac{3}{4} = \bra{0} \rho \ket{0} = Tr(\rho \ket{0} \bra{0})
+\end{equation}
+
+ 
+
+\textbf{Exercise 1}: What is the probability of measuring the state \ket{1}?
+
+ 
+
+\textbf{Exercise 2}: What is the probability of measuring the state \ket{1} or the state \ket{0}?
+
+ 
+
+Now we can generalize what a density matrix is. Consider a quantum system with i states $\ket{\psi_i}$ with respective probabilities $p_i$. The density matrix of this system is given by:
+\begin{equation}
+    \label{Eq: Density Operator}
+    \rho = \sum_i p_i \ket{\psi_i}\bra{\psi_i}
+\end{equation}
+
+The evolution of a quantum state is given by an unitary transformation U, then the evolution of the density matrix is given by:
+\begin{equation}
+    \rho = \sum_i p_i \ket{\psi_i}\bra{\psi_i} \xrightarrow{U} \sum_i p_i U\ket{\psi_i}\bra{\psi_i}U^{\dagger} = U \rho U^{\dagger}
+\end{equation}
+
+Measurements, as shown above, also can be generalized for the density operator formalism. Suppose the measurement operators $M_m$. If the initial state was $\ket{\psi_i}$, the probability of measuring m given i is:
+\begin{equation}
+    p(m|i) = \bra{\psi_i} M_m^{\dagger}M_m \ket{\psi_i} = Tr(M_m^{\dagger}M_m \ket{\psi_i}\bra{\psi_i})
+\end{equation}
+
+By the laws of probability:
+\begin{equation}
+    \begin{split}
+        p(m) = & \ \sum_i p(m|i) p_i \\
+        = & \ \sum_i p_i \ Tr(M_m^{\dagger}M_m \ket{\psi_i}\bra{\psi_i}) \\
+        = & \ Tr( M_m^{\dagger}M_m \rho )
+    \end{split}
+\end{equation}
+
+Therefore, if you want to know the value of any observable $A$, you have:
+\begin{equation}
+    \left<A\right> = Tr( A \rho )
+\end{equation}
+
+The class of operators that are density operators are characterized by the following useful theorem(From \citep{nielsen_chuang_2010}):
+
+\begin{theorem}[Characterization of Density Operators]
+An operator $\rho$ is the density operator associated to some ensemble \{ $p_i$ , $\ket{\psi_i}$ \} if and only if it satisfies the
+conditions:
+
+\begin{itemize}
+    \item \textbf{Unity Trace}: $Tr(\rho) = 1$
+    \item \textbf{Positivity}: $\rho \geq 0$
+\end{itemize}
+\end{theorem}
+
+\begin{proof}
+Suppose $\rho = \sum_i p_i \ket{\psi_i}\bra{\psi_i}$. Then
+\begin{itemize}
+    \item \textbf{Unity Trace}: 
+    \begin{equation}
+        Tr(\rho) = Tr(\sum_i p_i \ket{\psi_i}\bra{\psi_i}) = \sum_i p_i \overbrace{Tr(\ket{\psi_i}\bra{\psi_i})}^{=1} = \sum_i p_i = 1
+    \end{equation}
+    
+    \item \textbf{Positivity}: Suppose $\ket{\phi}$ is an arbitrary state. Then:
+    \begin{equation}
+        \begin{split}
+            \bra{\phi} \rho \ket{\phi} = & \ \sum_i p_i \braket{\phi}{\psi_i}\braket{\psi_i}{\phi} \\
+            = & \ \sum_i p_i |\braket{\phi}{\psi_i}|^2 \\
+            \geq &  \ 0
+        \end{split}
+    \end{equation}
+\end{itemize}
+
+Now suppose $\rho$ is an operator that the trace is unity and is positive. Since $\rho$ is positive, it must have a spectral decomposition:
+
+\begin{equation}
+    \rho = \sum_i \lambda_i \ket{i} \bra{i}
+\end{equation}
+
+From the unity of the trace, we have that $\sum_i \lambda_i = 1$. Therefore, we have the ensemble \{ $\lambda_i$ , $\ket{i}$ \} that gives rise to the density operator $\rho$.
+\end{proof}
+ 
+\textbf{Question}: Can we distinguish between two ensembles? 
+ 
+
+No! For example the ensembles: 
+\begin{enumerate}
+    \item \{ ($\frac{1}{2}$, $\ket{0}$), ($\frac{1}{2}$, $\ket{1}$)  \} $\rightarrow$ \ $\rho = \frac{1}{2}( \ket{0} \bra{0} + \ket{0} \bra{0}) = \frac{\mathds{1}}{2}$ 
+    \item \{ ($\frac{1}{2}$, $\ket{+}$), ($\frac{1}{2}$, $\ket{-}$)  \} $\rightarrow$ \ $\rho = \frac{1}{2}( \ket{+} \bra{+} + \ket{-} \bra{-}) = \frac{\mathds{1}}{2}$ 
+\end{enumerate}
+ 
+\textbf{Exercise}: Work out the details of the above ensembles.
+ 
+We can discriminate between two types of states:
+
+\begin{itemize}
+    \item \textbf{Pure States}: States that we have complete knowledge.
+    \begin{equation}
+        \rho = \ket{\psi_i} \bra{\psi_i} \ , \ p_i =1 \ , \ p_{j \neq i} = 0
+    \end{equation}
+    \item \textbf{Mixed States}: States that we do not have complete knowledge.
+    \begin{equation}
+        \rho = \sum_i \ket{\psi_i} \bra{\psi_i} 
+    \end{equation}
+    With at least two $p_i$'s that are different than 0.
+\end{itemize}
+
+We can quantify the purity of a state using the following measure:
+
+\begin{equation}
+    P(\rho) = Tr(\rho^2)
+\end{equation}
+
+\textbf{Example 1} (Pure State): $\rho = \ket{\psi} \bra{\psi}$
+
+\begin{equation}
+    P( \ket{\psi} \bra{\psi} ) = Tr( (\ket{\psi} \bra{\psi}) ^2) = Tr( \ket{\psi} \overbrace{\bra{\psi} \ket{\psi}}^{=1} \bra{\psi}) = Tr( \ket{\psi} \bra{\psi} ) = 1
+\end{equation}
+
+ 
+
+\textbf{Example 2} (Mixed State): Since $\rho$ is hermitian we can consider its spectral decomposition $ \rho = \sum_i \lambda_i \ket{\phi_i} \bra{\phi_i} $, where $\braket{\phi_i}{\phi_j} = \delta_{ij}$, $\lambda_i \geq 0$ and $\sum_i \lambda_i = 1$. Therefore:
+
+\begin{equation}
+    P(\rho) = Tr((\sum_i \lambda_i \ket{\phi_i} \bra{\phi_i})^2) = Tr(\sum_i \sum_j \lambda_i \lambda_j \ket{\phi_i} \overbrace{\bra{\phi_i} \ket{\phi_j}}^{= \delta_{ij}} \bra{\phi_j}) = Tr( \sum_i \lambda_i^2 \ket{\phi_i} \bra{\phi_i}) = \sum_i \lambda_i^2 \leq 1
+\end{equation}
+ 
+\textbf{Exercise}: Find the purity of the maximally mixed state $\rho = \mathds{1}/d$, where d is the dimension of the finite Hilbert Space.
+ 
+
+If you tried to do the exercise, you will find that the purity of a d-dimensional state lies between two fixed values $\frac{1}{d} \leq P(\rho) \leq 1$.

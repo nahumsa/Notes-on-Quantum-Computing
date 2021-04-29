@@ -1,0 +1,189 @@
+\subsection{HHL Algorithm}
+\label{subsec: HHL}
+
+\subsubsection{Introduction}
+\label{Subsubsec: HHL Introduction}
+
+Systems of linear equations have a lot of applications in science. So if we find a speedup on solving this problem there is real impact on society. 
+
+The problem that we want to solve is of the form:
+
+\begin{equation}
+A x = b
+\end{equation}
+
+Where A is a matrix and b is given, we want to solve for x. Classically there is two types of solutions:
+
+\begin{itemize}
+    \item[(1)] \textbf{LU Decomposition}: That finds x in $O(N^{2.376} \mathrm{poly}(log(k/\epsilon)))$ where $\epsilon$ is a bound of x error and k is the ith singular value, $k = ||A|| ||A^{-1}|| = \frac{\sigma_1(A)}{\sigma_N(A)} \sigma_1(A)$.
+
+    \item[(2)] \textbf{Iterative Methods}: Needs $O(\sqrt{k} \ \mathrm{log}(1/\epsilon))$ matrix vector multiplications. If A is spase, then we need \\ $O(Nd\sqrt{k}  \mathrm{log}(1/\epsilon))$ where d is the number of non-zero entries per row.
+\end{itemize}
+
+\subsubsection{Quantum Algorithm}
+\label{Subsubsec: HHL Algorithm}
+
+For the implementation of this algorithm is important to understand the Quantum Phase Estimation algorithm, because this is an application of this algorithm.
+
+For the quantum algorithm we need to convert the linear equation problem for a quantum mechanical problem, to do this we represent b as quantum state: $$ | b \rangle = \sum_{i=1}^N b_i | i \rangle$$ and  the problem is: 
+
+$$
+A | x \rangle = | b \rangle
+$$
+
+we assume that A is an hermitian operator (Matrix), that means if A is not Hermitian we expand A in order to be hermitian:
+
+$$
+C = \begin{pmatrix} 0 & A \\ A^{\dagger} & 0 \end{pmatrix}
+$$
+
+And change the problem to be $$Cy = \begin{pmatrix} b \\ 0 \end{pmatrix} \ \ \ , \ \ y = \begin{pmatrix} 0 \\ x \end{pmatrix}$$
+
+The algorithm is called HHL because of the three authors of the original [paper](https://arxiv.org/abs/0811.3171):  Harrow, Hassidim and Lloyd. 
+
+\subsubsection{Overview of the Quantum Algorithm}
+\label{Subsubsec: Overview HHL}
+
+The HHL consists of 3 registers, which we denote as $A'$ for the ancilla, W for work register, and IO for Input/Output register. 
+
+The input of the algorithm is the quantum state of b, $| b \rangle$, which is input to the IO register. All other registers starts on the $| 0 \rangle$, so we have:
+
+\begin{equation}
+| \psi_0 \rangle \equiv |0 \rangle_{A'} \otimes | 0 \rangle_{W} \otimes | b \rangle_{IO}
+\end{equation}
+
+In addition, we also have the matrix A as the input of the algorithm. The algorithm works on three steps:
+
+\begin{itemize}
+    \item[(1)] Quantum Phase Estimation with the unitary $U_A \equiv e^{iAt}$ controlled by the W register and $U_A$ applied to the IO register.
+
+    \item[(2)] Pauli-Y rotation for a particular angle $\theta$ on the A' register controlled by the W register.
+
+    \item[(3)] Do the first step in reverse, that is do the Inverse Qunatum Phase Estimation for $U_A$, on the W register.
+\end{itemize}
+If the register $A'$ is measured and one post-select (That is, we select only the state with the given outcome) on the $| 1 \rangle_{A'}$ outcome, then the state of the IO register will be close to $| x \rangle$.
+
+\subsubsection{Algorithm's Mathematical Walk-through}
+\label{Subsubsec: Walktrhough HHL}
+
+Since we assume that the matrix A is hermitian, then because of the spectral theorem A can be written in the eigenbasis:
+
+$$
+A = \sum_j \lambda_j | u_j \rangle \langle u_j |
+$$
+
+Also because A is hermitian, the operator $U_A$ is unitary and has eigenvalues $e^{i \lambda_j t}$ and eigenstates $| u_j \rangle$. Then we apply the QPE:
+
+$$
+| \psi_1 \rangle = | 0 \rangle_{A'} \otimes \sum_j \beta_j | \overline{\lambda_j} \rangle_{W} \otimes | u_j \rangle_{IO}
+$$
+
+Where $| \overline{\lambda_j} \rangle$ is a binary representation of $\lambda_j$ up to a set precision and $$\sum_j \beta_j | u_j \rangle_{IO}$$ is the expansion of $| b \rangle$ in the eigenbasis $| u_j \rangle$. 
+
+Applying the second step, which is the controlled-Y rotation $e^{i \theta Y}$ for the angle:
+
+$$
+\theta = \mathrm{arccos} \frac{C}{\lambda_j}
+$$
+
+Where C is an hyperparameter of the algorithm and is set by the user. After this rotation on the A' register, we have:
+
+$$
+| \psi_2 \rangle = \sum_j \beta_j \bigg( \sqrt{ 1 - \frac{C^2}{\overline{\lambda_j}^2}} | 0 \rangle_{A'} + + \frac{C}{\overline{\lambda_j}} | 0 \rangle_{A'} \bigg)\otimes | \overline{\lambda_j} \rangle_{W} \otimes | u_j \rangle_{IO}
+$$
+
+The third step is to do de reverse QPE, this gives:
+
+$$
+| \psi_3 \rangle = \sum_j \beta_j \bigg( \sqrt{ 1 - \frac{C^2}{\overline{\lambda_j}^2}} | 0 \rangle_{A'} + + \frac{C}{\overline{\lambda_j}} | 0 \rangle_{A'} \bigg)\otimes | 0 \rangle_{W} \otimes | u_j \rangle_{IO}
+$$
+
+This state is already on the inverse form, because: $$ A^{-1} | b \rangle = \sum_{j=1}^N \frac{\beta_j}{\lambda_j} | u_j \rangle$$
+
+Therefore if we measure the A' register and post-select $| 1 \rangle_{A'}$, we have the solution:
+
+$$
+| \psi_4 \rangle = \sum_{j=1}^N \frac{\beta_j}{\lambda_j} | u_j \rangle_{IO} \approx | x \rangle
+$$
+
+Thus the IO register contains the approximation of $|x \rangle$.
+
+This solves the linear equation problem exponentially faster than a classical computer, but there's a caveat (as always), the solution vector is a quantum state, therefore for getting the classical description of x we need to do quantum state tomography (QST) but QST scales exponentially with the number of qubits loosing the exponential speedup. There are some applications that we only need an expectation value, this leads to an exponential speedup.
+
+\textbf{Note}: A good value for the hyperparameter C is to be the smallest eigenvalue that can be represented by the circuit, that is 
+
+$$
+C = \frac{2 \pi}{2^n t}
+$$
+
+\subsubsection{Example}
+\label{Subsubsec: Example HHL}
+
+Let's solve the following problem:
+
+\begin{equation*}
+    A = \begin{pmatrix}
+    1 & - \frac{1}{3} \\
+    - \frac{1}{3} & 1
+    \end{pmatrix} \ \ \ \text{and} \ \ \ \ket{b} = \begin{pmatrix}
+    1 \\ 
+    0
+    \end{pmatrix}
+\end{equation*}
+
+We only need 1 qubit to represent $\ket{b}$, 2 qubits to represent the binary representation of eigenvalues and 1 qubit for the conditioned rotation, therefore we need 4 qubits total.
+
+For demonstrations purposes let's calculate the eigenvalues of $A$:
+
+\begin{equation*}
+    \lambda_1 = \frac{2}{3} \ \ \ \lambda_2 = \frac{4}{3}
+\end{equation*}
+
+Our QPE has only 2-bit precision for $\frac{\lambda_j t}{2 \pi}$. Therefore we can set $t$:
+
+\begin{equation*}
+    t = 2 \pi \frac{3}{8}
+\end{equation*}
+
+This will give a 2-bit approximation to:
+
+\begin{equation*}
+    \frac{\lambda_1 t}{2 \pi} = \underbrace{\frac{1}{4}}_{\ket{01}} \ \ \ \ \frac{\lambda_2 t}{2 \pi} = \underbrace{\frac{1}{2}}_{\ket{10}}
+\end{equation*}
+
+The eigenvectors are: 
+
+\begin{equation*}
+    \ket{u_1} = \begin{pmatrix} 1 \\ -1 \end{pmatrix} \ \ \ \ \ket{u_2} = \begin{pmatrix} 1 \\ 1 \end{pmatrix}
+\end{equation*}
+
+Writing $\ket{b}$ in the eigenbasis of A:
+\begin{equation*}
+    \ket{b}_{\text{IO}} = \sum_{j=0}^{N-1} \frac{1}{\sqrt{2}} \ket{10} \ket{u_j}
+\end{equation*}
+
+Let's go through the steps of the algorithm:
+\begin{enumerate}
+    \item The state preparation in this example is $\ket{b}=\ket{0}$.
+    \item Applying QPE will yield:
+    \begin{equation*}
+        \frac{1}{\sqrt{2}} \ket{01} \ket{u_1} + \frac{1}{\sqrt{2}} \ket{10} \ket{u_2}
+    \end{equation*}
+    \item Conditioned rotation with $C = \frac{3}{8}$:
+    \begin{equation*}
+    \begin{split}
+        \frac{1}{\sqrt{2}} \ket{01} \ket{u_1} \bigg( \sqrt{1 - \frac{(3/8)^2}{(1/4)^2}} \ket{0} + \frac{3/8}{1/4} \ket{1} \bigg) + \frac{1}{\sqrt{2}} \ket{10} \ket{u_2} \bigg( \sqrt{1 - \frac{(3/8)^2}{(1/2)^2}} \ket{0} + \frac{3/8}{1/2} \ket{1} \bigg) \\ 
+        = \frac{1}{\sqrt{2}} \ket{01} \ket{u_1} \bigg( \sqrt{1 - \frac{9}{4}} \ket{0} + \frac{3}{2} \ket{1} \bigg) + \frac{1}{\sqrt{2}} \ket{10} \ket{u_2} \bigg( \sqrt{1 - \frac{9}{16}} \ket{0} + \frac{3}{4} \ket{1} \bigg)
+    \end{split}
+    \end{equation*}
+    
+    \item After applying $\text{QPE}^\dagger$:
+    \begin{equation*}
+        \frac{1}{\sqrt{2}} \ket{00} \ket{u_1} \bigg( \sqrt{1 - \frac{9}{4}} \ket{0} + \frac{3}{2} \ket{1} \bigg) + \frac{1}{\sqrt{2}} \ket{00} \ket{u_2} \bigg( \sqrt{1 - \frac{9}{16}} \ket{0} + \frac{3}{4} \ket{1} \bigg)
+    \end{equation*}
+    
+    \item Post-selecting 1 on the auxiliary qubit, we have:
+    \begin{equation*}
+        \frac{\frac{3}{2\sqrt{2}} \ket{00} \ket{u_1} \ket{1} + \frac{3}{4\sqrt{2}} \ket{00} \ket{u_2} \ket{1}}{\sqrt{\frac{45}{32}}} = \frac{\ket{x}}{||x||}
+    \end{equation*}
+\end{enumerate}

@@ -1,0 +1,96 @@
+\subsection{Channels}
+\label{Subsec: Channels}
+\paragraph{}Suppose a system with an environment state on a global unitary $U: \mathcal{H}_A \otimes \mathcal{H}_B \rightarrow \mathcal{H}_A \otimes \mathcal2{H}_B$:
+
+\begin{figure}[H]
+\centering
+\begin{quantikz}
+    \lstick{$\rho_a$}   & \gate[wires=2]{U} &  \rstick{$\Lambda(\rho_a)$} \qw \\
+    \lstick{$\proj{0}_E$}  &  &  \qw
+\end{quantikz}
+= \ \  \begin{quantikz}
+\lstick{$\rho_a$}   & \gate{\Lambda} &  \rstick{$\Lambda(\rho_a)$} \qw 
+\end{quantikz}
+\caption{Representation of quantum channels.}
+\label{Figure: Circuit Quantum Channels}
+\end{figure}
+
+So we throw away the E part because we are only interested on part A. Therefore we will trace out the environment E:
+\begin{equation}
+    \label{Eq: Channel Definition}
+    \lambda(\rho_A) = Tr_B (U \rho_A \otimes \proj{0}_E U^\dagger)
+\end{equation}
+
+Let's derive the formula for this channel:
+
+\begin{equation}
+    \label{Eq: U (Channel)}
+    U = \sum_{k,l,m,n} U^{kl}_{mn} \op{kl}{mn}
+\end{equation}
+
+Using equation~\ref{Eq: U (Channel)} on equation~\ref{Eq: Channel Definition}:
+
+\begin{equation}
+\begin{split}
+\Lambda(\rho_A) = &  \sum_i ( \mathds{1} \otimes \bra{i}) \left[ \sum_{k,l,m,n} U^{kl}_{mn} \op{kl}{mn}(\rho_A \otimes \op{0}{0}_E) \left( \sum_{r,s,p,q} U^{rs}_{pq} \op{rs}{pq} \right)^\dagger \right] ( \mathds{1} \otimes \ket{i}) \\
+ = & \sum_i ( \mathds{1} \otimes \bra{i}) \left[ \sum_{k,l,m,n} U^{kl}_{mn} \op{kl}{mn}(\rho_A \otimes \op{0}{0}_E) \left( \sum_{r,s,p,q} (U^{rs}_{pq})^{*} \op{pq}{rs} \right) \right] ( \mathds{1} \otimes \ket{i}) \\ 
+ = & \sum_i \sum_{k,l,m,n} \sum_{r,s,p,q} U^{kl}_{mn} (U^{rs}_{pq})^{*} \op{k}{m}\rho_A\op{p}{r} \otimes  \ip{i}{l} \ip{n}{0} \ip{0}{q}\ip{s}{i} \\
+ = & \sum_i \sum_{k,m} \sum_{r,p} U^{ki}_{m0} (U^{ri}_{p0})^{*} \op{k}{m}\rho_A\op{p}{r} \\
+ = & \sum_i \left( \sum_{k,m} U^{ki}_{m0} \op{k}{m} \right) \rho_A \left( \sum_{r,p} U^{ri}_{p0} \op{p}{r} \right)^\dagger \\
+ \equiv & \sum_i K_i \rho_A K_i^\dagger
+\end{split}
+\end{equation}
+
+Then we define the Kraus Operator $K_i : \mathcal{H}_A \rightarrow \mathcal{H}_A$:
+
+\begin{equation}
+    \label{Eq: Kraus Operator}
+    K_i = \sum_{k,m} U^{ki}_{m0} \ \op{k}{m} = \bra{i}_E U \ket{0}_E
+\end{equation}
+
+Properties of quantum channels:
+\begin{itemize}
+    \item Linearity: 
+    \begin{equation}
+        \Lambda(\sum_j p_j \rho_j) = \sum_i K_i (\sum_j p_j \rho_j) K_i^\dagger = \sum_j \left( \sum_i K_i \rho_j K_i^\dagger \right) = \sum_j p_j \Lambda(\rho_j)
+    \end{equation}
+    
+    
+    \item Preserves Hermicity: If $\rho = \rho^\dagger \Rightarrow \Lambda(\rho)^\dagger = \Lambda(\rho)$
+    
+    \begin{equation}
+        \Lambda(\rho)^\dagger = \left( \sum_i K_i \rho K_i^\dagger\right) ^\dagger =  \sum_i K_i \rho K_i^\dagger = \Lambda(\rho)
+    \end{equation}
+    \item Preserves the Trace:
+    
+    \begin{equation}
+        Tr(\Lambda(\rho)) = Tr(\sum_i K_i \rho K_i^\dagger) = Tr(\sum_i K_i^\dagger K_i \rho)
+    \end{equation}
+    
+    Using $K_i = \bra{i}_B U \ket{0}_B$, we have that:
+    
+    \begin{equation}
+        \sum_i K_i^\dagger K_i = \sum_i \bra{0}_B U^\dagger \ket{i}_B  \bra{i}_B U \ket{0}_B =  \bra{i}_B U^\dagger U \ket{0}_B = \bra{i}_B \ket{0}_B = \mathds{1}_A 
+    \end{equation}
+    
+    Therefore: 
+    
+    \begin{equation}
+        Tr(\Lambda(\rho)) = Tr(\rho)
+    \end{equation}
+    
+    \item Preserves Positivity: $\rho \geq 0 \Rightarrow \Lambda(\rho) \geq 0$
+    \begin{equation}
+        \Lambda(\rho) = \sum_i K_i \rho K_i^\dagger = \sum_i K_i \sqrt{\rho} \sqrt{\rho} K_i^\dagger
+    \end{equation}
+    
+    Then, $\forall \ket{\psi}$: 
+    \begin{equation}
+        \bra{\psi} \Lambda(\rho) \ket{\psi} = \sum_i \bra{\psi} K_i \sqrt{\rho} \sqrt{\rho} K_i^\dagger \ket{\psi} = \sum_i || \sqrt{\rho} K_i \ket{\psi} || \geq 0
+    \end{equation}
+    
+\end{itemize}
+
+But in order to define an physically valid quantum channel, we have that the channel must return states even when applied to subsystems.
+
+Channels which $\forall n \in \mathbb{N}: \Lambda \otimes \mathds{1}_n(\rho) \geq 0$ are said to be Completely Positive Maps.
